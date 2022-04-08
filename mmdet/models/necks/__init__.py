@@ -6,6 +6,7 @@ from .dilated_encoder import DilatedEncoder
 from .dyhead import DyHead
 from .fpg import FPG
 from .fpn import FPN
+from .sfp import SFP
 from .fpn_carafe import FPN_CARAFE
 from .hrfpn import HRFPN
 from .nas_fpn import NASFPN
@@ -19,5 +20,5 @@ from .yolox_pafpn import YOLOXPAFPN
 __all__ = [
     'FPN', 'BFP', 'ChannelMapper', 'HRFPN', 'NASFPN', 'FPN_CARAFE', 'PAFPN',
     'NASFCOS_FPN', 'RFP', 'YOLOV3Neck', 'FPG', 'DilatedEncoder',
-    'CTResNetNeck', 'SSDNeck', 'YOLOXPAFPN', 'DyHead'
+    'CTResNetNeck', 'SSDNeck', 'YOLOXPAFPN', 'DyHead', 'SFP',
 ]
