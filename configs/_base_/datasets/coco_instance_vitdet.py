@@ -6,7 +6,16 @@ img_norm_cfg = dict(
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
-    dict(type='Resize', img_scale=(1024, 1024), multiscale_mode='value', keep_ratio=False),
+    #dict(type='Resize', img_scale=(1024, 1024), multiscale_mode='value', keep_ratio=False),
+    # large scale jittering
+    dict(
+        type='Resize',
+        #img_scale=[(128, 128), (256, 256), (384, 384), (512, 512), (640, 640), (768, 768), (896, 896), (1024, 1024), (1152, 1152), (1280, 1280), (1408, 1408), (1536, 1536), (1664, 1664), (1792, 1792), (1920, 1920), (2048, 2048)],
+        #img_scale=[(128, 128), (256, 256), (384, 384), (512, 512), (640, 640), (768, 768), (896, 896), (1024, 1024), (1152, 1152), (1280, 1280), (1408, 1408), (1536, 1536), (1664, 1664)],
+        img_scale=[(128, 128), (256, 256), (384, 384), (512, 512), (640, 640), (768, 768), (896, 896), (1024, 1024), (1152, 1152), (1280, 1280), (1408, 1408), (1536, 1536)],
+        #ratio_range=(0.1, 2.0),
+        multiscale_mode='value',
+        keep_ratio=False),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=32),
@@ -29,7 +38,7 @@ test_pipeline = [
         ])
 ]
 data = dict(
-    samples_per_gpu=2,
+    samples_per_gpu=1,
     workers_per_gpu=2,
     train=dict(
         type=dataset_type,

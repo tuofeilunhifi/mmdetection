@@ -175,14 +175,24 @@ class ViTDetVisionTransformer(VisionTransformer):
         pos_embed = torch.cat((cls_token_weight, pos_embed_weight), dim=1)
         return pos_embed
 
-    def window_partition(self, x):
+    def window_partition(self, x, hw_shape):
         B, L, C = x.shape
-        x = x.reshape(64 * B , -1, C)
+        H, W = hw_shape[0], hw_shape[1]
+        #print("partition", H // 8)
+        if (H // 8) > 8:
+            x = x.reshape((H // 8) * (W // 8) * B, -1, C)
+        else:
+            x = x.reshape(64 * B , -1, C)
         return x
 
-    def window_reverse(self, x):
+    def window_reverse(self, x, hw_shape):
         B, L, C = x.shape
-        x = x.reshape(B // 64, -1, C)
+        H, W = hw_shape[0], hw_shape[1]
+        #print("reverse", H // 8)
+        if (H // 8) > 8:
+            x = x.reshape(B // ((H // 8) * (W // 8)), -1, C)
+        else:
+            x = x.reshape(B // 64, -1, C)
         return x 
 
     def forward(self, x):
@@ -201,21 +211,21 @@ class ViTDetVisionTransformer(VisionTransformer):
         x = x[:, 1:]
 
         # window_partition
-        x = self.window_partition(x)
+        x = self.window_partition(x, hw_shape)
 
         outs = []
         for i, layer in enumerate(self.layers):
             # local self-attention & global self-attention
             if (self.layers==12 and (i+1) % 3 == 0) or (self.layers==24 and (i+1) % 6 == 0):
-                x  = self.window_reverse(x)
+                x  = self.window_reverse(x, hw_shape)
                 x = layer(x)
-                x = self.window_partition(x)
+                x = self.window_partition(x, hw_shape)
             else:
                 x = layer(x)
 
             if i == len(self.layers) - 1:
                 # window_reverse
-                x = self.window_reverse(x)
+                x = self.window_reverse(x, hw_shape)
                 if self.final_norm:
                     x = self.norm1(x)
             if i in self.out_indices:
