@@ -88,7 +88,7 @@ class ResizeShortestEdge:
         else:
             newh, neww = scale * h, size
         if max(newh, neww) > self.max_size:
-            scale = max_size * 1.0 / max(newh, neww)
+            scale = self.max_size * 1.0 / max(newh, neww)
             newh = newh * scale
             neww = neww * scale
         neww = int(neww + 0.5)
