@@ -5,6 +5,7 @@ model = dict(
         type='ViTDetVisionTransformer',
         arch='b',
         patch_size=16,
+        window_size=16,
         drop_path_rate=0.1,
         out_indices=[11],
         final_norm=True,

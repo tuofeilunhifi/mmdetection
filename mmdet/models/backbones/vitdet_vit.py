@@ -44,6 +44,7 @@ class ViTDetVisionTransformer(VisionTransformer):
                  arch='b',
                  img_size=224,
                  patch_size=16,
+                 window_size=16,
                  out_indices=-1,
                  drop_rate=0,
                  drop_path_rate=0,
@@ -82,6 +83,7 @@ class ViTDetVisionTransformer(VisionTransformer):
 
         self.img_size = img_size
         self.patch_size = patch_size
+        self.window_size = window_size
         self.interpolate_mode = interpolate_mode
         self.embed_dims = self.arch_settings['embed_dims']
         self.out_indices = out_indices
@@ -178,21 +180,13 @@ class ViTDetVisionTransformer(VisionTransformer):
     def window_partition(self, x, hw_shape):
         B, L, C = x.shape
         H, W = hw_shape[0], hw_shape[1]
-        #print("partition", H // 8)
-        # if (H // 8) > 8:
-        #     x = x.reshape((H // 8) * (W // 8) * B, -1, C)
-        # else:
-            x = x.reshape(16 * 16 * B , -1, C)
+        x = x.reshape(self.window_size * self.window_size * B , -1, C)
         return x
 
     def window_reverse(self, x, hw_shape):
         B, L, C = x.shape
         H, W = hw_shape[0], hw_shape[1]
-        #print("reverse", H // 8)
-        # if (H // 8) > 8:
-        #     x = x.reshape(B // ((H // 8) * (W // 8)), -1, C)
-        # else:
-            x = x.reshape(B // (16 * 16), -1, C)
+        x = x.reshape(B // (self.window_size * self.window_size), -1, C)
         return x 
 
     def forward(self, x):
