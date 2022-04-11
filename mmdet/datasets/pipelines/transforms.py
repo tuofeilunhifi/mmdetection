@@ -94,9 +94,7 @@ class ResizeShortestEdge:
         neww = int(neww + 0.5)
         newh = int(newh + 0.5)
 
-        scale = (newh, neww)
-
-        return scale
+        results['scale'] = (newh, neww)
 
     def _resize_img(self, results):
         """Resize images with ``results['scale']``."""
@@ -154,8 +152,7 @@ class ResizeShortestEdge:
                 'keep_ratio' keys are added into result dict.
         """
 
-        scale = self._scale(results)
-        results['scale'] = scale
+        self._scale(results)
 
         self._resize_img(results)
         self._resize_bboxes(results)

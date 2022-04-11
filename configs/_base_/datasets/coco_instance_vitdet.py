@@ -34,10 +34,11 @@ test_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(
         type='MultiScaleFlipAug',
-        img_scale=(1024, 1024),
+        img_scale=image_size,
         flip=False,
         transforms=[
-            dict(type='Resize', multiscale_mode='value', keep_ratio=False),
+            dict(type='ResizeShortestEdge', short_edge_length=image_size[0], max_size=image_size[0]),
+            dict(type='Pad', size=image_size),
             dict(type='RandomFlip'),
             dict(type='Normalize', **img_norm_cfg),
             dict(type='Pad', size_divisor=32),
