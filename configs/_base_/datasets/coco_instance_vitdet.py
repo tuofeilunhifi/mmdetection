@@ -3,25 +3,36 @@ dataset_type = 'CocoDataset'
 data_root = '/home/yunji.cjy/data/coco/'
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+
+image_size = (1024, 1024)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
     #dict(type='Resize', img_scale=(1024, 1024), multiscale_mode='value', keep_ratio=False),
     # large scale jittering
-    dict(
-        type='Resize',
-        #img_scale=[(128, 128), (256, 256), (384, 384), (512, 512), (640, 640), (768, 768), (896, 896), (1024, 1024), (1152, 1152), (1280, 1280), (1408, 1408), (1536, 1536), (1664, 1664), (1792, 1792), (1920, 1920), (2048, 2048)],
-        #img_scale=[(128, 128), (256, 256), (384, 384), (512, 512), (640, 640), (768, 768), (896, 896), (1024, 1024), (1152, 1152), (1280, 1280), (1408, 1408), (1536, 1536), (1664, 1664)],
-        img_scale=[(128, 128), (256, 256), (384, 384), (512, 512), (640, 640), (768, 768), (896, 896), (1024, 1024), (1152, 1152), (1280, 1280), (1408, 1408), (1536, 1536)],
-        #ratio_range=(0.1, 2.0),
-        multiscale_mode='value',
-        keep_ratio=False),
     # dict(
     #     type='Resize',
-    #     img_scale=(1024, 1024),
-    #     ratio_range=(0.1, 2.0),
-    #     multiscale_mode='range',
-    #     keep_ratio=True),
+    #     #img_scale=[(128, 128), (256, 256), (384, 384), (512, 512), (640, 640), (768, 768), (896, 896), (1024, 1024), (1152, 1152), (1280, 1280), (1408, 1408), (1536, 1536), (1664, 1664), (1792, 1792), (1920, 1920), (2048, 2048)],
+    #     #img_scale=[(128, 128), (256, 256), (384, 384), (512, 512), (640, 640), (768, 768), (896, 896), (1024, 1024), (1152, 1152), (1280, 1280), (1408, 1408), (1536, 1536), (1664, 1664)],
+    #     img_scale=[(128, 128), (256, 256), (384, 384), (512, 512), (640, 640), (768, 768), (896, 896), (1024, 1024), (1152, 1152), (1280, 1280), (1408, 1408), (1536, 1536)],
+    #     #ratio_range=(0.1, 2.0),
+    #     multiscale_mode='value',
+    #     keep_ratio=False),
+    dict(
+        type='Resize',
+        img_scale=image_size,
+        ratio_range=(0.1, 2.0),
+        multiscale_mode='range',
+        keep_ratio=True),
+    dict(
+        type='RandomCrop',
+        crop_size=image_size,
+        crop_type='absolute',
+        recompute_bbox=True,
+        allow_negative_crop=True),
+    dict(
+        type='Pad',
+        size=image_size),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=32),
