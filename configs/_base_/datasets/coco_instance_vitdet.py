@@ -15,12 +15,7 @@ train_pipeline = [
         ratio_range=(0.1, 2.0),
         multiscale_mode='range',
         keep_ratio=True),
-    dict(
-        type='RandomCrop',
-        crop_size=image_size,
-        crop_type='absolute',
-        recompute_bbox=True,
-        allow_negative_crop=True),
+    dict(type='RandomCrop', crop_size=image_size),
     dict(
         type='Pad',
         size=image_size),
@@ -47,7 +42,7 @@ test_pipeline = [
         ])
 ]
 data = dict(
-    samples_per_gpu=1,
+    samples_per_gpu=2,
     workers_per_gpu=2,
     train=dict(
         type=dataset_type,
