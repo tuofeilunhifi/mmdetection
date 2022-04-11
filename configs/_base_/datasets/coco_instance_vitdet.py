@@ -22,13 +22,6 @@ train_pipeline = [
     #     ratio_range=(0.1, 2.0),
     #     multiscale_mode='range',
     #     keep_ratio=True),
-    # dict(
-    #     type='RandomCenterCropPad',
-    #     crop_size=(1024, 1024),
-    #     ratios=(0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3),
-    #     test_mode=False,
-    #     test_pad_mode=None,
-    #     **img_norm_cfg),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size_divisor=32),
