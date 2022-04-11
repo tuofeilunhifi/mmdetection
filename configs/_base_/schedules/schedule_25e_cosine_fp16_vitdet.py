@@ -1,7 +1,6 @@
 # optimizer
 optimizer = dict(type='AdamW', lr=1e-4, betas=(0.9, 0.999), weight_decay=0.1)
-optimizer_config = dict(grad_clip=None, cumulative_iters=8)
-#optimizer_config = dict(grad_clip=None, update_interval=8)
+optimizer_config = dict(grad_clip=None, cumulative_iters=4)
 # learning policy
 # lr_config = dict(
 #     policy='step',
