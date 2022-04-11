@@ -93,7 +93,7 @@ class ViTDetVisionTransformer(VisionTransformer):
             kernel_size=patch_size,
             stride=patch_size,
             padding='corner',
-            norm_cfg=norm_cfg if patch_norm else None,
+            norm_cfg=None,
             init_cfg=None,
         )
 

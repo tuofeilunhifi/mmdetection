@@ -8,7 +8,7 @@ model = dict(
         drop_path_rate=0.1,
         out_indices=[11],
         final_norm=True,
-        init_cfg=dict(type='Pretrained', checkpoint='/home/yunji.cjy/pretrain/mae_vit-base-p16_8xb512-coslr-400e_in1k-224_20220223-85be947b.pth')),
+        init_cfg=dict(type='Pretrained', checkpoint='/home/yunji.cjy/pretrain/warpper_mae_vit-base-p16_8b512-coslr-400e_in1k-224.pth')),
     neck=dict(
         type='SFP',
         in_channels=768,
