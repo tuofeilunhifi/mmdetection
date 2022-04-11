@@ -8,16 +8,7 @@ image_size = (1024, 1024)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
-    #dict(type='Resize', img_scale=(1024, 1024), multiscale_mode='value', keep_ratio=False),
     # large scale jittering
-    # dict(
-    #     type='Resize',
-    #     #img_scale=[(128, 128), (256, 256), (384, 384), (512, 512), (640, 640), (768, 768), (896, 896), (1024, 1024), (1152, 1152), (1280, 1280), (1408, 1408), (1536, 1536), (1664, 1664), (1792, 1792), (1920, 1920), (2048, 2048)],
-    #     #img_scale=[(128, 128), (256, 256), (384, 384), (512, 512), (640, 640), (768, 768), (896, 896), (1024, 1024), (1152, 1152), (1280, 1280), (1408, 1408), (1536, 1536), (1664, 1664)],
-    #     img_scale=[(128, 128), (256, 256), (384, 384), (512, 512), (640, 640), (768, 768), (896, 896), (1024, 1024), (1152, 1152), (1280, 1280), (1408, 1408), (1536, 1536)],
-    #     #ratio_range=(0.1, 2.0),
-    #     multiscale_mode='value',
-    #     keep_ratio=False),
     dict(
         type='Resize',
         img_scale=image_size,
@@ -44,19 +35,9 @@ test_pipeline = [
     dict(
         type='MultiScaleFlipAug',
         img_scale=(1024, 1024),
-        #img_scale=(1333, 800),
         flip=False,
         transforms=[
             dict(type='Resize', multiscale_mode='value', keep_ratio=False),
-            dict(type='Resize', keep_ratio=True),
-            dict(
-                type='RandomCenterCropPad',
-                crop_size=None,
-                ratios=None,
-                border=None,
-                test_mode=True,
-                test_pad_mode=['logical_or', 127],
-                **img_norm_cfg),
             dict(type='RandomFlip'),
             dict(type='Normalize', **img_norm_cfg),
             dict(type='Pad', size_divisor=32),

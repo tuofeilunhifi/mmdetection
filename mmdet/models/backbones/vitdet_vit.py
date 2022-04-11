@@ -179,20 +179,20 @@ class ViTDetVisionTransformer(VisionTransformer):
         B, L, C = x.shape
         H, W = hw_shape[0], hw_shape[1]
         #print("partition", H // 8)
-        if (H // 8) > 8:
-            x = x.reshape((H // 8) * (W // 8) * B, -1, C)
-        else:
-            x = x.reshape(64 * B , -1, C)
+        # if (H // 8) > 8:
+        #     x = x.reshape((H // 8) * (W // 8) * B, -1, C)
+        # else:
+            x = x.reshape(16 * 16 * B , -1, C)
         return x
 
     def window_reverse(self, x, hw_shape):
         B, L, C = x.shape
         H, W = hw_shape[0], hw_shape[1]
         #print("reverse", H // 8)
-        if (H // 8) > 8:
-            x = x.reshape(B // ((H // 8) * (W // 8)), -1, C)
-        else:
-            x = x.reshape(B // 64, -1, C)
+        # if (H // 8) > 8:
+        #     x = x.reshape(B // ((H // 8) * (W // 8)), -1, C)
+        # else:
+            x = x.reshape(B // (16 * 16), -1, C)
         return x 
 
     def forward(self, x):
