@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import torch
+from einops import rearrange
 from mmcls.models import VisionTransformer
 from mmcv.cnn import build_norm_layer
 from mmcv.utils import to_2tuple
@@ -174,18 +175,6 @@ class ViTDetVisionTransformer(VisionTransformer):
         pos_embed = torch.cat((cls_token_weight, pos_embed_weight), dim=1)
         return pos_embed
 
-    def window_partition(self, x, hw_shape):
-        B, L, C = x.shape
-        H, W = hw_shape[0], hw_shape[1]
-        x = x.reshape(self.window_size * self.window_size * B , -1, C)
-        return x
-
-    def window_reverse(self, x, hw_shape):
-        B, L, C = x.shape
-        H, W = hw_shape[0], hw_shape[1]
-        x = x.reshape(B // (self.window_size * self.window_size), -1, C)
-        return x 
-
     def forward(self, x):
         # print("1", x.shape)
         B = x.shape[0]
@@ -201,29 +190,48 @@ class ViTDetVisionTransformer(VisionTransformer):
         # remove class token
         x = x[:, 1:]
 
-        # window_partition
-        x = self.window_partition(x, hw_shape)
-
         outs = []
-        for i, layer in enumerate(self.layers):
-            # local self-attention & global self-attention
-            if (self.layers==12 and (i+1) % 3 == 0) or (self.layers==24 and (i+1) % 6 == 0):
-                x  = self.window_reverse(x, hw_shape)
-                x = layer(x)
-                x = self.window_partition(x, hw_shape)
-            else:
-                x = layer(x)
+        for _, i in enumerate(
+            zip(range(0, len(self.layers), len(self.layers) // 4))
+        ):
+            # window partition
+            x = rearrange(
+                x,
+                "b (h w) c -> b h w c",
+                h=hw_shape[0],
+                w=hw_shape[1],
+            )
+            x = rearrange(
+                x,
+                "b (h h1) (w w1) c -> (b h w) (h1 w1) c",
+                h1=self.window_size,
+                w1=self.window_size,
+            )
 
-            if i in self.out_indices:
-                # window_reverse
-                out = self.window_reverse(x, hw_shape)
+            # window attention
+            for block in self.layers[i : i + len(self.layers) // 4 - 1]:
+                x = block(x)
 
-                if i == len(self.layers) - 1:
-                    if self.final_norm:
-                        out = self.norm1(out)
-                        
-                B, _, C = out.shape
-                out = out.reshape(B, hw_shape[0], hw_shape[1], C).permute(0, 3, 1, 2).contiguous()
-                outs.append(out)
+            # window reverse
+            x = rearrange(
+                x,
+                "(b h w) (h1 w1) c -> b (h h1 w w1) c",
+                h=hw_shape[0] // self.window_size,
+                w=hw_shape[1] // self.window_size,
+                h1=self.window_size,
+                w1=self.window_size,
+            )
+
+            # global attention
+            x = self.layers[i + len(self.layers) // 4 - 1](x)
+
+            # recover
+            x_ = rearrange(
+                x,
+                "b (h w) c -> b c h w",
+                h=hw_shape[0],
+                w=hw_shape[1],
+            )  
+            outs.append(x_)      
 
         return tuple(outs)
