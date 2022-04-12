@@ -187,6 +187,7 @@ class ViTDetVisionTransformer(VisionTransformer):
         return x 
 
     def forward(self, x):
+        B = x.shape[0]
         x, hw_shape = self.patch_embed(x)
 
         # stole cls_tokens impl from Phil Wang, thanks
