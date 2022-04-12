@@ -52,7 +52,7 @@ class SFP(BaseModule):
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.num_level = 4
-        #self.fp16_enabled = False
+        self.fp16_enabled = False
 
         self.top_downs = nn.ModuleList()
         self.lateral_convs = nn.ModuleList()
