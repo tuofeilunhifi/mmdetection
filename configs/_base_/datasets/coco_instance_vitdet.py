@@ -15,7 +15,13 @@ train_pipeline = [
         ratio_range=(0.1, 2.0),
         multiscale_mode='range',
         keep_ratio=True),
-    dict(type='RandomCrop', crop_size=image_size),
+    dict(
+        type='RandomCrop',
+        crop_type='absolute_range',
+        crop_size=image_size,
+        recompute_bbox=True,
+        allow_negative_crop=True),
+    dict(type='FilterAnnotations', min_gt_bbox_wh=(1e-2, 1e-2)),
     dict(type='RandomFlip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='Pad', size=image_size),
@@ -29,7 +35,6 @@ test_pipeline = [
         img_scale=image_size,
         flip=False,
         transforms=[
-            #dict(type='ResizeShortestEdge', short_edge_length=image_size[0], max_size=image_size[0]),
             dict(type='Resize', keep_ratio=True),
             dict(type='RandomFlip'),
             dict(type='Normalize', **img_norm_cfg),
