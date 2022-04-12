@@ -217,12 +217,14 @@ class ViTDetVisionTransformer(VisionTransformer):
             else:
                 x = layer(x)
 
-            if i == len(self.layers) - 1:
+            if i in self.out_indices:
                 # window_reverse
                 x = self.window_reverse(x, hw_shape)
-                if self.final_norm:
-                    x = self.norm1(x)
-            if i in self.out_indices:
+
+                if i == len(self.layers) - 1:
+                    if self.final_norm:
+                        x = self.norm1(x)
+                        
                 B, _, C = x.shape
                 x = x.reshape(B, hw_shape[0], hw_shape[1], C).permute(0, 3, 1, 2).contiguous()
                 outs.append(x)

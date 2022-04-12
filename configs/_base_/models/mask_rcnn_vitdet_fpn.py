@@ -7,14 +7,14 @@ model = dict(
         patch_size=16,
         window_size=16,
         drop_path_rate=0.1,
-        out_indices=[11],
+        out_indices=[2, 5, 8, 11],
         final_norm=False,
         init_cfg=dict(type='Pretrained', checkpoint='/home/yunji.cjy/pretrain/mae_vit-base-p16_8xb512-coslr-400e_in1k-224_20220223-85be947b.pth')),
     neck=dict(
-        type='SFP',
-        in_channels=768,
+        type='FPN',
+        in_channels=[768, 768, 768, 768],
         out_channels=256,
-        norm_cfg=dict(type='LN')),
+        num_outs=5),
     rpn_head=dict(
         type='RPNHead',
         in_channels=256,
