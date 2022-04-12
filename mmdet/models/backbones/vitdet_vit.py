@@ -209,8 +209,8 @@ class ViTDetVisionTransformer(VisionTransformer):
             )
 
             # window attention
-            for block in self.layers[i : i + len(self.layers) // 4 - 1]:
-                x = block(x)
+            for j in range(i, i + len(self.layers) // 4 - 1):
+                x = self.layers[j](x)
 
             # window reverse
             x = rearrange(
