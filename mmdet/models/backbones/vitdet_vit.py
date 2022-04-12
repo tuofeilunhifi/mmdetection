@@ -187,8 +187,10 @@ class ViTDetVisionTransformer(VisionTransformer):
         return x 
 
     def forward(self, x):
+        # print("1", x.shape)
         B = x.shape[0]
         x, hw_shape = self.patch_embed(x)
+        # print("2", x.shape)
 
         # stole cls_tokens impl from Phil Wang, thanks
         cls_tokens = self.cls_token.expand(B, -1, -1)
@@ -199,25 +201,29 @@ class ViTDetVisionTransformer(VisionTransformer):
         # remove class token
         x = x[:, 1:]
 
+        # window_partition
+        x = self.window_partition(x, hw_shape)
+
         outs = []
-        for i in range(0, len(self.layers), len(self.layers) // 4):
-            # window partition
-            x = self.window_partition(x, hw_shape)
-
-            # window attention
-            for j in range(i, i + len(self.layers) // 4 - 1):
-                x = self.layers[j](x)
-
-            # window reverse
-            x = self.window_reverse(x, hw_shape)
-
-            # global attention
-            x = self.layers[i + len(self.layers) // 4 - 1](x)
+        for i, layer in enumerate(self.layers):
+            # local self-attention & global self-attention
+            if (self.layers==12 and (i+1) % 3 == 0) or (self.layers==24 and (i+1) % 6 == 0):
+                x  = self.window_reverse(x, hw_shape)
+                x = layer(x)
+                x = self.window_partition(x, hw_shape)
+            else:
+                x = layer(x)
 
             if i in self.out_indices:
-                # recover
-                B, _, C = x.shape
-                x_ = x.reshape(B, hw_shape[0], hw_shape[1], C).permute(0, 3, 1, 2).contiguous()
-                outs.append(x_)      
+                # window_reverse
+                out = self.window_reverse(x, hw_shape)
+
+                if i == len(self.layers) - 1:
+                    if self.final_norm:
+                        out = self.norm1(out)
+                        
+                B, _, C = out.shape
+                out = out.reshape(B, hw_shape[0], hw_shape[1], C).permute(0, 3, 1, 2).contiguous()
+                outs.append(out)
 
         return tuple(outs)
