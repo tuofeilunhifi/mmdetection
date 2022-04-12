@@ -100,9 +100,6 @@ class ViTDetVisionTransformer(VisionTransformer):
         )
 
         self.num_patches = self.patch_resolution[0] * self.patch_resolution[1]
-        if not self.final_norm:
-            _, self.fc_norm = build_norm_layer(
-                norm_cfg, self.embed_dims, postfix=1)
 
         self.finetune = finetune
         if not self.finetune:
@@ -219,14 +216,14 @@ class ViTDetVisionTransformer(VisionTransformer):
 
             if i in self.out_indices:
                 # window_reverse
-                x = self.window_reverse(x, hw_shape)
+                out = self.window_reverse(x, hw_shape)
 
                 if i == len(self.layers) - 1:
                     if self.final_norm:
-                        x = self.norm1(x)
+                        out = self.norm1(out)
                         
-                B, _, C = x.shape
-                x = x.reshape(B, hw_shape[0], hw_shape[1], C).permute(0, 3, 1, 2).contiguous()
-                outs.append(x)
+                B, _, C = out.shape
+                out = out.reshape(B, hw_shape[0], hw_shape[1], C).permute(0, 3, 1, 2).contiguous()
+                outs.append(out)
 
         return tuple(outs)
