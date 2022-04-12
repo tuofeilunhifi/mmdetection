@@ -191,9 +191,7 @@ class ViTDetVisionTransformer(VisionTransformer):
         x = x[:, 1:]
 
         outs = []
-        for _, i in enumerate(
-            zip(range(0, len(self.layers), len(self.layers) // 4))
-        ):
+        for i in range(0, len(self.layers), len(self.layers) // 4):
             # window partition
             x = rearrange(
                 x,
@@ -225,13 +223,14 @@ class ViTDetVisionTransformer(VisionTransformer):
             # global attention
             x = self.layers[i + len(self.layers) // 4 - 1](x)
 
-            # recover
-            x_ = rearrange(
-                x,
-                "b (h w) c -> b c h w",
-                h=hw_shape[0],
-                w=hw_shape[1],
-            )  
-            outs.append(x_)      
+            if i in self.out_indices:
+                # recover
+                x_ = rearrange(
+                    x,
+                    "b (h w) c -> b c h w",
+                    h=hw_shape[0],
+                    w=hw_shape[1],
+                )  
+                outs.append(x_)      
 
         return tuple(outs)

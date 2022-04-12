@@ -7,7 +7,7 @@ model = dict(
         patch_size=16,
         window_size=16,
         drop_path_rate=0.1,
-        out_indices=[2, 5, 8, 11],
+        out_indices=[0, 1, 2, 3],
         final_norm=False,
         init_cfg=dict(type='Pretrained', checkpoint='/home/yunji.cjy/pretrain/mae_vit-base-p16_8xb512-coslr-400e_in1k-224_20220223-85be947b.pth')),
     neck=dict(
