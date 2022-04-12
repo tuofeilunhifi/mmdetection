@@ -10,4 +10,5 @@ lr_config = dict(
     step=[30, 60, 90])
 runner = dict(type='EpochBasedRunner', max_epochs=100)
 
-#checkpoint_config = dict(interval=1)
+# you need to set mode='dynamic' if you are using pytorch<=1.5.0
+fp16 = dict(loss_scale=dict(init_scale=512))

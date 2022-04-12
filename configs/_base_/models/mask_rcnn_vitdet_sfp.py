@@ -23,7 +23,6 @@ model = dict(
             type='AnchorGenerator',
             scales=[8],
             ratios=[0.5, 1.0, 2.0],
-            #strides=[4, 8, 16, 32, 64]),
             strides=[4, 8, 16, 32]),
         bbox_coder=dict(
             type='DeltaXYWHBBoxCoder',

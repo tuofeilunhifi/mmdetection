@@ -73,10 +73,12 @@ class ResizeShortestEdge:
     def __init__(self,
                 short_edge_length,
                 max_size=None,
-                backend='cv2'):
+                backend='cv2',
+                bbox_clip_border=True):
         self.short_edge_length = short_edge_length
         self.max_size = max_size
         self.backend = backend
+        self.bbox_clip_border = bbox_clip_border
 
     def _scale(self, results):
         img = results['img']
@@ -164,6 +166,7 @@ class ResizeShortestEdge:
         repr_str = self.__class__.__name__
         repr_str += f'(short_edge_length={self.short_edge_length}, '
         repr_str += f'backend={self.backend}, '
+        repr_str += f'bbox_clip_border={self.bbox_clip_border}, '
         repr_str += f'max_size={self.max_size})'
         return repr_str
 
