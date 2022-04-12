@@ -29,7 +29,8 @@ test_pipeline = [
         img_scale=image_size,
         flip=False,
         transforms=[
-            dict(type='ResizeShortestEdge', short_edge_length=image_size[0], max_size=image_size[0]),
+            #dict(type='ResizeShortestEdge', short_edge_length=image_size[0], max_size=image_size[0]),
+            dict(type='Resize', keep_ratio=True),
             dict(type='RandomFlip'),
             dict(type='Normalize', **img_norm_cfg),
             dict(type='Pad', size=image_size),
