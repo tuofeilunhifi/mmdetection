@@ -5,4 +5,3 @@ _base_ = [
 ]
 
 checkpoint_config = dict(interval=6)
-find_unused_parameters=True
