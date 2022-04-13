@@ -13,7 +13,32 @@ from mmcv.utils import to_2tuple
 
 from ...utils import get_root_logger
 from ..builder import BACKBONES
-from ..utils import PatchEmbed
+
+class PatchEmbed(nn.Module):
+    """ 2D Image to Patch Embedding
+    """
+    def __init__(self, img_size=224, patch_size=16, in_chans=3, embed_dim=768, norm_layer=None, flatten=True):
+        super().__init__()
+        img_size = to_2tuple(img_size)
+        patch_size = to_2tuple(patch_size)
+        self.img_size = img_size
+        self.patch_size = patch_size
+        self.grid_size = (img_size[0] // patch_size[0], img_size[1] // patch_size[1])
+        self.num_patches = self.grid_size[0] * self.grid_size[1]
+        self.flatten = flatten
+
+        self.proj = nn.Conv2d(in_chans, embed_dim, kernel_size=patch_size, stride=patch_size)
+        self.norm = norm_layer(embed_dim) if norm_layer else nn.Identity()
+
+    def forward(self, x):
+        B, C, H, W = x.shape
+        _assert(H == self.img_size[0], f"Input image height ({H}) doesn't match model ({self.img_size[0]}).")
+        _assert(W == self.img_size[1], f"Input image width ({W}) doesn't match model ({self.img_size[1]}).")
+        x = self.proj(x)
+        if self.flatten:
+            x = x.flatten(2).transpose(1, 2)  # BCHW -> BNC
+        x = self.norm(x)
+        return x
 
 class Mlp(nn.Module):
     """ MLP as used in Vision Transformer, MLP-Mixer and related networks
@@ -227,25 +252,17 @@ class ViTDetVisionTransformer(BaseModule):
 
         self.embed_dims = self.arch_settings['embed_dims']
         self.num_layers = self.arch_settings['num_layers']
-        self.img_size = to_2tuple(img_size)
         norm_layer = partial(nn.LayerNorm, eps=1e-6)
 
         # Set patch embedding
-        _patch_cfg = dict(
-            img_size=img_size,
-            embed_dims=self.embed_dims,
-            conv_cfg=dict(
-                type='Conv2d', kernel_size=patch_size, stride=patch_size),
-        )
-        _patch_cfg.update(patch_cfg)
-        self.patch_embed = PatchEmbed(**_patch_cfg)
+        self.patch_embed = PatchEmbed(
+            img_size=img_size, patch_size=patch_size, in_chans=3, embed_dim=self.embed_dims)
+        num_patches = self.patch_embed.num_patches
 
-        self.patches_resolution = self.patch_embed.patches_resolution
+        self.grid_size = self.patch_embed.grid_size
         self.window_size = window_size
         self.patch_size = patch_size
         self.out_indices = out_indices
-
-        num_patches = self.patches_resolution[0] * self.patches_resolution[1]
 
         # Set cls token
         self.output_cls_token = output_cls_token
@@ -327,7 +344,7 @@ class ViTDetVisionTransformer(BaseModule):
 
             ckpt_pos_embed_shape = to_2tuple(
                 int(np.sqrt(ckpt_pos_embed_shape[1] - self.num_extra_tokens)))
-            pos_embed_shape = self.patch_embed.patches_resolution
+            pos_embed_shape = self.grid_size
 
             state_dict[name] = self.resize_pos_embed(state_dict[name],
                                                      ckpt_pos_embed_shape,
@@ -372,7 +389,7 @@ class ViTDetVisionTransformer(BaseModule):
         return torch.cat((extra_tokens, dst_weight), dim=1)
 
     def build_2d_sincos_position_embedding(self, temperature=10000.0):
-        h, w = self.patches_resolution
+        h, w = self.grid_size
         grid_w = torch.arange(w, dtype=torch.float32)
         grid_h = torch.arange(h, dtype=torch.float32)
         grid_w, grid_h = torch.meshgrid(grid_w, grid_h)
@@ -394,15 +411,15 @@ class ViTDetVisionTransformer(BaseModule):
         self.pos_embed2 = nn.Parameter(torch.cat([pe_token, pos_emb], dim=1))
         self.pos_embed2.requires_grad = False
 
-    def window_partition(self, x, patches_resolution):
+    def window_partition(self, x, grid_size):
         B, L, C = x.shape
-        H, W = patches_resolution[0], patches_resolution[1]
+        H, W = grid_size[0], grid_size[1]
         x = x.reshape(self.window_size * self.window_size * B , -1, C)
         return x
 
-    def window_reverse(self, x, patches_resolution):
+    def window_reverse(self, x, grid_size):
         B, L, C = x.shape
-        H, W = patches_resolution[0], patches_resolution[1]
+        H, W = grid_size[0], grid_size[1]
         x = x.reshape(B // (self.window_size * self.window_size), -1, C)
         return x 
 
@@ -415,28 +432,28 @@ class ViTDetVisionTransformer(BaseModule):
         x = self.drop_after_pos(x)
 
         # window_partition
-        x = self.window_partition(x, self.patches_resolution)
+        x = self.window_partition(x, self.grid_size)
 
         outs = []
         for i, layer in enumerate(self.blocks):
             # local self-attention & global self-attention
             if (self.blocks==12 and (i+1) % 3 == 0) or (self.blocks==24 and (i+1) % 6 == 0):
-                x  = self.window_reverse(x, self.patches_resolution)
+                x  = self.window_reverse(x, self.grid_size)
                 x = layer(x)
-                x = self.window_partition(x, self.patches_resolution)
+                x = self.window_partition(x, self.grid_size)
             else:
                 x = layer(x)
 
             if i in self.out_indices:
                 # window_reverse
-                out = self.window_reverse(x, self.patches_resolution)
+                out = self.window_reverse(x, self.grid_size)
 
                 if i == len(self.blocks) - 1:
                     if self.final_norm:
                         out = self.norm(out)
                         
                 B, _, C = out.shape
-                out = out.reshape(B, self.patches_resolution[0], self.patches_resolution[1], C).permute(0, 3, 1, 2).contiguous()
+                out = out.reshape(B, self.grid_size[0], self.grid_size[1], C).permute(0, 3, 1, 2).contiguous()
                 outs.append(out)
 
         return tuple(outs)
