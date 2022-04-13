@@ -32,8 +32,9 @@ class PatchEmbed(nn.Module):
 
     def forward(self, x):
         B, C, H, W = x.shape
-        assert(H == self.img_size[0], f"Input image height ({H}) doesn't match model ({self.img_size[0]}).")
-        assert(W == self.img_size[1], f"Input image width ({W}) doesn't match model ({self.img_size[1]}).")
+        assert H == self.img_size[0] and W == self.img_size[1], \
+            f"Input image size ({H}*{W}) doesn't " \
+            f'match model ({self.img_size[0]}*{self.img_size[1]}).'
         x = self.proj(x)
         if self.flatten:
             x = x.flatten(2).transpose(1, 2)  # BCHW -> BNC
@@ -269,19 +270,16 @@ class ViTDetVisionTransformer(BaseModule):
         self.cls_token = nn.Parameter(torch.zeros(1, 1, self.embed_dims))
 
         # Set position embedding
+        self.sincos_pos_embed = sincos_pos_embed
         self.interpolate_mode = interpolate_mode
         self.pos_embed = nn.Parameter(
             torch.zeros(1, num_patches + self.num_extra_tokens,
                         self.embed_dims))
 
-        # sincos pos embed
-        self.sincos_pos_embed = sincos_pos_embed
-        if sincos_pos_embed:
+        if self.sincos_pos_embed:
             self.build_2d_sincos_position_embedding()
-
-        # remove pos_embed for extra tokens
-        self.pos_embed2 = nn.Parameter(self.pos_embed2[:, self.num_extra_tokens:, :])
-
+            # remove pos_embed for extra tokens
+            self.pos_embed = nn.Parameter(self.pos_embed[:, self.num_extra_tokens:, :])
 
         self.drop_after_pos = nn.Dropout(p=drop_rate)
 
@@ -333,6 +331,9 @@ class ViTDetVisionTransformer(BaseModule):
         if name not in state_dict.keys():
             return
 
+        if self.sincos_pos_embed:
+            return 
+
         ckpt_pos_embed_shape = state_dict[name].shape
         if self.pos_embed.shape != ckpt_pos_embed_shape:
             from mmcv.utils import print_log
@@ -347,10 +348,10 @@ class ViTDetVisionTransformer(BaseModule):
             pos_embed_shape = self.grid_size
 
             state_dict[name] = self.resize_pos_embed(state_dict[name],
-                                                     ckpt_pos_embed_shape,
-                                                     pos_embed_shape,
-                                                     self.interpolate_mode,
-                                                     self.num_extra_tokens)
+                                                ckpt_pos_embed_shape,
+                                                pos_embed_shape,
+                                                self.interpolate_mode,
+                                                self.num_extra_tokens)
 
     @staticmethod
     def resize_pos_embed(pos_embed,
@@ -408,8 +409,8 @@ class ViTDetVisionTransformer(BaseModule):
 
         assert self.num_extra_tokens == 1, "Assuming one and only one token, [cls]"
         pe_token = torch.zeros([1, 1, self.embed_dims], dtype=torch.float32)
-        self.pos_embed2 = nn.Parameter(torch.cat([pe_token, pos_emb], dim=1))
-        self.pos_embed2.requires_grad = False
+        self.pos_embed = nn.Parameter(torch.cat([pe_token, pos_emb], dim=1))
+        self.pos_embed.requires_grad = False
 
     def window_partition(self, x, grid_size):
         B, L, C = x.shape
@@ -427,7 +428,7 @@ class ViTDetVisionTransformer(BaseModule):
         x = self.patch_embed(x)
 
         if self.sincos_pos_embed:
-            x = x + self.pos_embed2
+            x = x + self.pos_embed
 
         x = self.drop_after_pos(x)
 
