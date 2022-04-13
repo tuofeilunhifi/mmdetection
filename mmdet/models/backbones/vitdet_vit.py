@@ -275,11 +275,9 @@ class ViTDetVisionTransformer(BaseModule):
         self.pos_embed = nn.Parameter(
             torch.zeros(1, num_patches + self.num_extra_tokens,
                         self.embed_dims))
-
+        # set sincos position embedding
         if self.sincos_pos_embed:
             self.build_2d_sincos_position_embedding()
-            # remove pos_embed for extra tokens
-            self.pos_embed = nn.Parameter(self.pos_embed[:, self.num_extra_tokens:, :])
 
         self.drop_after_pos = nn.Dropout(p=drop_rate)
 
@@ -332,7 +330,8 @@ class ViTDetVisionTransformer(BaseModule):
             return
 
         if self.sincos_pos_embed:
-            return 
+            state_dict.pop(name)
+            return
 
         ckpt_pos_embed_shape = state_dict[name].shape
         if self.pos_embed.shape != ckpt_pos_embed_shape:
@@ -427,8 +426,7 @@ class ViTDetVisionTransformer(BaseModule):
     def forward(self, x):
         x = self.patch_embed(x)
 
-        if self.sincos_pos_embed:
-            x = x + self.pos_embed
+        x = x + self.pos_embed[:, self.num_extra_tokens:]
 
         x = self.drop_after_pos(x)
 
