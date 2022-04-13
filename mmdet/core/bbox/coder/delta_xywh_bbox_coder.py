@@ -36,15 +36,13 @@ class DeltaXYWHBBoxCoder(BaseBBoxCoder):
                  target_stds=(1., 1., 1., 1.),
                  clip_border=True,
                  add_ctr_clamp=False,
-                 ctr_clamp=32,
-                 weights=[1., 1., 1., 1.]):
+                 ctr_clamp=32):
         super(BaseBBoxCoder, self).__init__()
         self.means = target_means
         self.stds = target_stds
         self.clip_border = clip_border
         self.add_ctr_clamp = add_ctr_clamp
         self.ctr_clamp = ctr_clamp
-        self.weights = weights
 
     def encode(self, bboxes, gt_bboxes):
         """Get box regression transformation deltas that can be used to
@@ -61,7 +59,7 @@ class DeltaXYWHBBoxCoder(BaseBBoxCoder):
 
         assert bboxes.size(0) == gt_bboxes.size(0)
         assert bboxes.size(-1) == gt_bboxes.size(-1) == 4
-        encoded_bboxes = bbox2delta(bboxes, gt_bboxes, self.means, self.stds, self.weights)
+        encoded_bboxes = bbox2delta(bboxes, gt_bboxes, self.means, self.stds)
         return encoded_bboxes
 
     def decode(self,
@@ -96,7 +94,7 @@ class DeltaXYWHBBoxCoder(BaseBBoxCoder):
         if pred_bboxes.ndim == 2 and not torch.onnx.is_in_onnx_export():
             # single image decode
             decoded_bboxes = delta2bbox(bboxes, pred_bboxes, self.means,
-                                        self.stds, self.weights, max_shape, wh_ratio_clip,
+                                        self.stds, max_shape, wh_ratio_clip,
                                         self.clip_border, self.add_ctr_clamp,
                                         self.ctr_clamp)
         else:
@@ -117,7 +115,7 @@ class DeltaXYWHBBoxCoder(BaseBBoxCoder):
 
 
 @mmcv.jit(coderize=True)
-def bbox2delta(proposals, gt, means=(0., 0., 0., 0.), stds=(1., 1., 1., 1.), weights=(1., 1., 1., 1.)):
+def bbox2delta(proposals, gt, means=(0., 0., 0., 0.), stds=(1., 1., 1., 1.)):
     """Compute deltas of proposals w.r.t. gt.
 
     We usually compute the deltas of x, y, w, h of proposals w.r.t ground
@@ -149,11 +147,10 @@ def bbox2delta(proposals, gt, means=(0., 0., 0., 0.), stds=(1., 1., 1., 1.), wei
     gw = gt[..., 2] - gt[..., 0]
     gh = gt[..., 3] - gt[..., 1]
 
-    wx, wy, ww, wh = weights
-    dx = wx * (gx - px) / pw
-    dy = wy * (gy - py) / ph
-    dw = ww * torch.log(gw / pw)
-    dh = wh * torch.log(gh / ph)
+    dx = (gx - px) / pw
+    dy = (gy - py) / ph
+    dw = torch.log(gw / pw)
+    dh = torch.log(gh / ph)
     deltas = torch.stack([dx, dy, dw, dh], dim=-1)
 
     means = deltas.new_tensor(means).unsqueeze(0)
@@ -168,7 +165,6 @@ def delta2bbox(rois,
                deltas,
                means=(0., 0., 0., 0.),
                stds=(1., 1., 1., 1.),
-               weights=(1., 1., 1., 1.),
                max_shape=None,
                wh_ratio_clip=16 / 1000,
                clip_border=True,
@@ -230,12 +226,6 @@ def delta2bbox(rois,
         return deltas
 
     deltas = deltas.reshape(-1, 4)
-
-    wx, wy, ww, wh = weights
-    deltas[:, 0::4] = deltas[:, 0::4] / wx
-    deltas[:, 1::4] = deltas[:, 1::4] / wy
-    deltas[:, 2::4] = deltas[:, 2::4] / ww
-    deltas[:, 3::4] = deltas[:, 3::4] / wh
 
     means = deltas.new_tensor(means).view(1, -1)
     stds = deltas.new_tensor(stds).view(1, -1)
