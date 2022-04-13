@@ -55,76 +55,44 @@ class SFP(BaseModule):
         self.fp16_enabled = False
 
         self.top_downs = nn.ModuleList()
-        self.lateral_convs = nn.ModuleList()
-        self.lateral_lns = nn.ModuleList()
-        self.sfp_convs = nn.ModuleList()
-        self.sfp_lns = nn.ModuleList()
+        self.sfp_outs = nn.ModuleList()
 
         for i in range(self.num_level):
             if i == 0:
-                multi_path = nn.ModuleList()
-                multi_path.append(nn.ConvTranspose2d(in_channels, in_channels, 2, stride=2, padding=0))
-                multi_path.append(build_norm_layer(norm_cfg, in_channels)[1])
-                multi_path.append(nn.GELU())
-                multi_path.append(nn.ConvTranspose2d(in_channels, in_channels, 2, stride=2, padding=0))
+                top_down = nn.Sequential(
+                    nn.ConvTranspose2d(in_channels, in_channels, 2, stride=2, padding=0),
+                    nn.GroupNorm(1, in_channels, eps=1e-6),
+                    nn.GELU(),
+                    nn.ConvTranspose2d(in_channels, in_channels, 2, stride=2, padding=0)
+                )
             elif i == 1:
-                multi_path = nn.ConvTranspose2d(in_channels, in_channels, 2, stride=2, padding=0)
+                top_down = nn.ConvTranspose2d(in_channels, in_channels, 2, stride=2, padding=0)
             elif i == 2:
-                multi_path = nn.Identity()
+                top_down = nn.Identity()
             elif i == 3:
-                multi_path = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+                top_down = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
 
-            l_conv = nn.Conv2d(in_channels, out_channels, 1)
-            l_ln = build_norm_layer(norm_cfg, out_channels)[1]
-            sfp_conv = nn.Conv2d(out_channels, out_channels, 3, padding=1)
-            sfp_ln = build_norm_layer(norm_cfg, out_channels)[1]
+            sfp_out = nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, 1),
+                nn.GroupNorm(1, out_channels, eps=1e-6),
+                nn.Conv2d(out_channels, out_channels, 3, padding=1),
+                nn.GroupNorm(1, out_channels, eps=1e-6)
+            )
 
-            self.top_downs.append(multi_path)
-            self.lateral_convs.append(l_conv)
-            self.lateral_lns.append(l_ln)
-            self.sfp_convs.append(sfp_conv)
-            self.sfp_lns.append(sfp_ln)
+            self.top_downs.append(top_down)
+            self.sfp_outs.append(sfp_out)
 
     @auto_fp16()
     def forward(self, inputs):
         """Forward function."""
         assert len(inputs) == 1
 
-        #print("3", inputs[0].shape)
-
         # build outputs
         outs = []
         for i in range(self.num_level):
-            #print("4", i)
 
-            # multi-scale
-            if i == 0:
-                x = self.top_downs[i][0](inputs[0])
-
-                B, C, H, W = x.shape
-                x = x.flatten(2).transpose(1, 2)
-                x = self.top_downs[i][1](x)
-                x = self.top_downs[i][2](x)
-                x = x.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
-
-                x = self.top_downs[i][3](x)
-            else:
-                x = self.top_downs[i](inputs[0])
-
-            # reduce dim
-            x = self.lateral_convs[i](x)
-            B, C, H, W = x.shape
-
-            x = x.flatten(2).transpose(1, 2)
-            x = self.lateral_lns[i](x)
-            x = x.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
-
-            # outputs
-            x = self.sfp_convs[i](x)
-
-            x = x.flatten(2).transpose(1, 2)
-            x = self.sfp_lns[i](x)
-            x = x.reshape(B, H, W, C).permute(0, 3, 1, 2).contiguous()
+            x = self.top_downs[i](inputs[0])
+            x = self.sfp_outs[i](x)
 
             outs.append(x)
 
