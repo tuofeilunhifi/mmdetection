@@ -1,24 +1,127 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-import math
+from typing import Sequence
+
+from functools import partial
+import numpy as np
 import torch
 import torch.nn as nn
-from mmcls.models import VisionTransformer
+import torch.nn.functional as F
 from mmcv.cnn import build_norm_layer
+from mmcv.cnn.utils.weight_init import trunc_normal_
+from mmcv.runner.base_module import BaseModule, ModuleList
 from mmcv.utils import to_2tuple
-from mmdet.models.utils import resize
-from mmcv.runner import (BaseModule, CheckpointLoader, ModuleList,
-                         load_state_dict)
-from ...utils import get_root_logger
 
+from ...utils import get_root_logger
 from ..builder import BACKBONES
-from ..utils.transformer import PatchEmbed
+from ..utils import PatchEmbed
+
+class Mlp(nn.Module):
+    """ MLP as used in Vision Transformer, MLP-Mixer and related networks
+    """
+    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
+        super().__init__()
+        out_features = out_features or in_features
+        hidden_features = hidden_features or in_features
+        drop_probs = to_2tuple(drop)
+
+        self.fc1 = nn.Linear(in_features, hidden_features)
+        self.act = act_layer()
+        self.drop1 = nn.Dropout(drop_probs[0])
+        self.fc2 = nn.Linear(hidden_features, out_features)
+        self.drop2 = nn.Dropout(drop_probs[1])
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.act(x)
+        x = self.drop1(x)
+        x = self.fc2(x)
+        x = self.drop2(x)
+        return x
+
+def drop_path(x, drop_prob: float = 0., training: bool = False, scale_by_keep: bool = True):
+    """Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
+
+    This is the same as the DropConnect impl I created for EfficientNet, etc networks, however,
+    the original name is misleading as 'Drop Connect' is a different form of dropout in a separate paper...
+    See discussion: https://github.com/tensorflow/tpu/issues/494#issuecomment-532968956 ... I've opted for
+    changing the layer and argument names to 'drop path' rather than mix DropConnect as a layer name and use
+    'survival rate' as the argument.
+
+    """
+    if drop_prob == 0. or not training:
+        return x
+    keep_prob = 1 - drop_prob
+    shape = (x.shape[0],) + (1,) * (x.ndim - 1)  # work with diff dim tensors, not just 2D ConvNets
+    random_tensor = x.new_empty(shape).bernoulli_(keep_prob)
+    if keep_prob > 0.0 and scale_by_keep:
+        random_tensor.div_(keep_prob)
+    return x * random_tensor
+
+
+class DropPath(nn.Module):
+    """Drop paths (Stochastic Depth) per sample  (when applied in main path of residual blocks).
+    """
+    def __init__(self, drop_prob=None, scale_by_keep=True):
+        super(DropPath, self).__init__()
+        self.drop_prob = drop_prob
+        self.scale_by_keep = scale_by_keep
+
+    def forward(self, x):
+        return drop_path(x, self.drop_prob, self.training, self.scale_by_keep)
+
+class Attention(nn.Module):
+    def __init__(self, dim, num_heads=8, qkv_bias=False, attn_drop=0., proj_drop=0.):
+        super().__init__()
+        assert dim % num_heads == 0, 'dim should be divisible by num_heads'
+        self.num_heads = num_heads
+        head_dim = dim // num_heads
+        self.scale = head_dim ** -0.5
+
+        self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
+        self.attn_drop = nn.Dropout(attn_drop)
+        self.proj = nn.Linear(dim, dim)
+        self.proj_drop = nn.Dropout(proj_drop)
+
+    def forward(self, x):
+        B, N, C = x.shape
+        qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
+        q, k, v = qkv.unbind(0)   # make torchscript happy (cannot use tensor as tuple)
+
+        attn = (q @ k.transpose(-2, -1)) * self.scale
+        attn = attn.softmax(dim=-1)
+        attn = self.attn_drop(attn)
+
+        x = (attn @ v).transpose(1, 2).reshape(B, N, C)
+        x = self.proj(x)
+        x = self.proj_drop(x)
+        return x
+
+class Block(nn.Module):
+
+    def __init__(self, dim, num_heads, mlp_ratio=4., qkv_bias=False, drop=0., attn_drop=0.,
+                 drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm):
+        super().__init__()
+        self.norm1 = norm_layer(dim)
+        self.attn = Attention(dim, num_heads=num_heads, qkv_bias=qkv_bias, attn_drop=attn_drop, proj_drop=drop)
+        # NOTE: drop path for stochastic depth, we shall see if this is better than dropout here
+        self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
+        self.norm2 = norm_layer(dim)
+        mlp_hidden_dim = int(dim * mlp_ratio)
+        self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
+
+    def forward(self, x):
+        x = x + self.drop_path(self.attn(self.norm1(x)))
+        x = x + self.drop_path(self.mlp(self.norm2(x)))
+        return x
+
 
 @BACKBONES.register_module()
-class ViTDetVisionTransformer(VisionTransformer):
-    """Vision Transformer for MIM-style model (Mask Image Modeling)
-    classification (fine-tuning or linear probe).
+class ViTDetVisionTransformer(BaseModule):
+    """Vision Transformer.
+
     A PyTorch implement of : `An Image is Worth 16x16 Words: Transformers
     for Image Recognition at Scale <https://arxiv.org/abs/2010.11929>`_
+
     Args:
         arch (str | dict): Vision Transformer architecture
             Default: 'b'
@@ -40,10 +143,56 @@ class ViTDetVisionTransformer(VisionTransformer):
         patch_cfg (dict): Configs of patch embeding. Defaults to an empty dict.
         layer_cfgs (Sequence | dict): Configs of each transformer layer in
             encoder. Defaults to an empty dict.
-        finetune (bool): Whether or not do fine-tuning. Defaults to True.
         init_cfg (dict, optional): Initialization config dict.
             Defaults to None.
     """
+    arch_zoo = {
+        **dict.fromkeys(
+            ['s', 'small'], {
+                'embed_dims': 768,
+                'num_layers': 8,
+                'num_heads': 8,
+                'feedforward_channels': 768 * 3,
+                'qkv_bias': False
+            }),
+        **dict.fromkeys(
+            ['b', 'base'], {
+                'embed_dims': 768,
+                'num_layers': 12,
+                'num_heads': 12,
+                'feedforward_channels': 3072
+            }),
+        **dict.fromkeys(
+            ['l', 'large'], {
+                'embed_dims': 1024,
+                'num_layers': 24,
+                'num_heads': 16,
+                'feedforward_channels': 4096
+            }),
+        **dict.fromkeys(
+            ['deit-t', 'deit-tiny'], {
+                'embed_dims': 192,
+                'num_layers': 12,
+                'num_heads': 3,
+                'feedforward_channels': 192 * 4
+            }),
+        **dict.fromkeys(
+            ['deit-s', 'deit-small'], {
+                'embed_dims': 384,
+                'num_layers': 12,
+                'num_heads': 6,
+                'feedforward_channels': 384 * 4
+            }),
+        **dict.fromkeys(
+            ['deit-b', 'deit-base'], {
+                'embed_dims': 768,
+                'num_layers': 12,
+                'num_heads': 12,
+                'feedforward_channels': 768 * 4
+            }),
+    }
+    # Some structures have multiple extra tokens, like DeiT.
+    num_extra_tokens = 1  # cls_token
 
     def __init__(self,
                  arch='b',
@@ -51,9 +200,8 @@ class ViTDetVisionTransformer(VisionTransformer):
                  patch_size=16,
                  window_size=16,
                  out_indices=-1,
-                 drop_rate=0,
-                 drop_path_rate=0,
-                 patch_norm=True,
+                 drop_rate=0.,
+                 drop_path_rate=0.,
                  norm_cfg=dict(type='LN', eps=1e-6),
                  final_norm=True,
                  output_cls_token=True,
@@ -61,51 +209,53 @@ class ViTDetVisionTransformer(VisionTransformer):
                  interpolate_mode='bicubic',
                  patch_cfg=dict(),
                  layer_cfgs=dict(),
-                 finetune=True,
                  init_cfg=None):
-        super().__init__(
-            arch,
-            img_size=img_size,
-            patch_size=patch_size,
-            out_indices=out_indices,
-            drop_rate=drop_rate,
-            drop_path_rate=drop_path_rate,
-            norm_cfg=norm_cfg,
-            final_norm=final_norm,
-            output_cls_token=output_cls_token,
-            interpolate_mode=interpolate_mode,
-            patch_cfg=patch_cfg,
-            layer_cfgs=layer_cfgs,
-            init_cfg=init_cfg)
+        super(ViTDetVisionTransformer, self).__init__(init_cfg)
 
-        if isinstance(img_size, int):
-            img_size = to_2tuple(img_size)
-        elif isinstance(img_size, tuple):
-            if len(img_size) == 1:
-                img_size = to_2tuple(img_size[0])
-            assert len(img_size) == 2, \
-                f'The size of image should have length 1 or 2, ' \
-                f'but got {len(img_size)}'
+        if isinstance(arch, str):
+            arch = arch.lower()
+            assert arch in set(self.arch_zoo), \
+                f'Arch {arch} is not in default archs {set(self.arch_zoo)}'
+            self.arch_settings = self.arch_zoo[arch]
+        else:
+            essential_keys = {
+                'embed_dims', 'num_layers', 'num_heads', 'feedforward_channels'
+            }
+            assert isinstance(arch, dict) and essential_keys <= set(arch), \
+                f'Custom arch needs a dict with keys {essential_keys}'
+            self.arch_settings = arch
 
-        self.img_size = img_size
-        self.patch_size = patch_size
-        self.window_size = window_size
-        self.interpolate_mode = interpolate_mode
         self.embed_dims = self.arch_settings['embed_dims']
+        self.num_layers = self.arch_settings['num_layers']
+        self.img_size = to_2tuple(img_size)
+        norm_layer = partial(nn.LayerNorm, eps=1e-6)
+
+        # Set patch embedding
+        _patch_cfg = dict(
+            img_size=img_size,
+            embed_dims=self.embed_dims,
+            conv_cfg=dict(
+                type='Conv2d', kernel_size=patch_size, stride=patch_size),
+        )
+        _patch_cfg.update(patch_cfg)
+        self.patch_embed = PatchEmbed(**_patch_cfg)
+
+        self.patches_resolution = self.patch_embed.patches_resolution
+        self.window_size = window_size
+        self.patch_size = patch_size
         self.out_indices = out_indices
 
-        self.patch_embed = PatchEmbed(
-            in_channels=3,
-            embed_dims=self.embed_dims,
-            conv_type='Conv2d',
-            kernel_size=patch_size,
-            stride=patch_size,
-            padding='corner',
-            norm_cfg=None,
-            init_cfg=None,
-        )
+        num_patches = self.patches_resolution[0] * self.patches_resolution[1]
 
-        self.grid_size = (1024 // self.patch_size, 1024 // self.patch_size)
+        # Set cls token
+        self.output_cls_token = output_cls_token
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, self.embed_dims))
+
+        # Set position embedding
+        self.interpolate_mode = interpolate_mode
+        self.pos_embed = nn.Parameter(
+            torch.zeros(1, num_patches + self.num_extra_tokens,
+                        self.embed_dims))
 
         # sincos pos embed
         self.sincos_pos_embed = sincos_pos_embed
@@ -115,127 +265,114 @@ class ViTDetVisionTransformer(VisionTransformer):
         # remove pos_embed for extra tokens
         self.pos_embed2 = nn.Parameter(self.pos_embed2[:, self.num_extra_tokens:, :])
 
-        self.finetune = finetune
-        if not self.finetune:
-            self._freeze_stages()
 
-    def train(self, mode=True):
-        super(ViTDetVisionTransformer, self).train(mode)
-        if not self.finetune:
-            self._freeze_stages()
+        self.drop_after_pos = nn.Dropout(p=drop_rate)
 
-    def _freeze_stages(self):
-        """Freeze params in backbone when linear probing."""
-        for _, param in self.named_parameters():
-            param.requires_grad = False
+        if isinstance(out_indices, int):
+            out_indices = [out_indices]
+        assert isinstance(out_indices, Sequence), \
+            f'"out_indices" must by a sequence or int, ' \
+            f'get {type(out_indices)} instead.'
+        for i, index in enumerate(out_indices):
+            if index < 0:
+                out_indices[i] = self.num_layers + index
+                assert out_indices[i] >= 0, f'Invalid out_indices {index}'
+        self.out_indices = out_indices
 
-    # def _pos_embeding(self, patched_img, hw_shape, pos_embed):
-    #     """Positiong embeding method.
-    #     Resize the pos_embed, if the input image size doesn't match
-    #         the training size.
-    #     Args:
-    #         patched_img (torch.Tensor): The patched image, it should be
-    #             shape of [B, L1, C].
-    #         hw_shape (tuple): The downsampled image resolution.
-    #         pos_embed (torch.Tensor): The pos_embed weighs, it should be
-    #             shape of [B, L2, c].
-    #     Return:
-    #         torch.Tensor: The pos encoded image feature.
-    #     """
-    #     assert patched_img.ndim == 3 and pos_embed.ndim == 3, \
-    #         'the shapes of patched_img and pos_embed must be [B, L, C]'
-    #     x_len, pos_len = patched_img.shape[1], pos_embed.shape[1]
-    #     if x_len != pos_len:
-    #         if pos_len == (self.img_size[0] // self.patch_size) * (
-    #                 self.img_size[1] // self.patch_size) + 1:
-    #             pos_h = self.img_size[0] // self.patch_size
-    #             pos_w = self.img_size[1] // self.patch_size
-    #         else:
-    #             raise ValueError(
-    #                 'Unexpected shape of pos_embed, got {}.'.format(
-    #                     pos_embed.shape))
-    #         pos_embed = self.resize_pos_embed(pos_embed, hw_shape,
-    #                                           (pos_h, pos_w),
-    #                                           self.interpolate_mode)
-    #     return patched_img + pos_embed
+        # stochastic depth decay rule
+        dpr = np.linspace(0, drop_path_rate, self.arch_settings['num_layers'])
 
-    # @staticmethod
-    # def resize_pos_embed(pos_embed, input_shpae, pos_shape, mode):
-    #     """Resize pos_embed weights.
-    #     Resize pos_embed using bicubic interpolate method.
-    #     Args:
-    #         pos_embed (torch.Tensor): Position embedding weights.
-    #         input_shpae (tuple): Tuple for (downsampled input image height,
-    #             downsampled input image width).
-    #         pos_shape (tuple): The resolution of downsampled origin training
-    #             image.
-    #         mode (str): Algorithm used for upsampling:
-    #             ``'nearest'`` | ``'linear'`` | ``'bilinear'`` | ``'bicubic'`` |
-    #             ``'trilinear'``. Default: ``'nearest'``
-    #     Return:
-    #         torch.Tensor: The resized pos_embed of shape [B, L_new, C]
-    #     """
-    #     assert pos_embed.ndim == 3, 'shape of pos_embed must be [B, L, C]'
-    #     pos_h, pos_w = pos_shape
-    #     cls_token_weight = pos_embed[:, 0]
-    #     pos_embed_weight = pos_embed[:, (-1 * pos_h * pos_w):]
-    #     pos_embed_weight = pos_embed_weight.reshape(
-    #         1, pos_h, pos_w, pos_embed.shape[2]).permute(0, 3, 1, 2)
-    #     pos_embed_weight = resize(
-    #         pos_embed_weight, size=input_shpae, align_corners=False, mode=mode)
-    #     cls_token_weight = cls_token_weight.unsqueeze(1)
-    #     pos_embed_weight = torch.flatten(pos_embed_weight, 2).transpose(1, 2)
-    #     pos_embed = torch.cat((cls_token_weight, pos_embed_weight), dim=1)
-    #     return pos_embed
+        self.blocks = ModuleList()
+        if isinstance(layer_cfgs, dict):
+            layer_cfgs = [layer_cfgs] * self.num_layers
+        for i in range(self.num_layers):
+            _layer_cfg = dict(
+                dim=self.embed_dims,
+                num_heads=self.arch_settings['num_heads'],
+                mlp_ratio=4.,
+                qkv_bias=True,
+                drop=drop_rate,
+                attn_drop=0.,
+                drop_path=dpr[i],
+                norm_layer=norm_layer,
+                act_layer=nn.GELU)
+            self.blocks.append(Block(**_layer_cfg))
 
-    # def init_weights(self):
-    #     if (isinstance(self.init_cfg, dict)
-    #             and self.init_cfg.get('type') == 'Pretrained'):
-    #         logger = get_root_logger()
-    #         checkpoint = CheckpointLoader.load_checkpoint(
-    #             self.init_cfg['checkpoint'], logger=logger, map_location='cpu')
+        self.final_norm = final_norm
+        if final_norm:
+            self.norm = norm_layer(self.embed_dims)
 
-    #         if 'state_dict' in checkpoint:
-    #             state_dict = checkpoint['state_dict']
-    #         else:
-    #             state_dict = checkpoint
+        self._register_load_state_dict_pre_hook(self._prepare_checkpoint_hook)
 
-    #         if 'pos_embed' in state_dict.keys():
-    #             if self.pos_embed.shape != state_dict['pos_embed'].shape:
-    #                 logger.info(msg=f'Resize the pos_embed shape from '
-    #                             f'{state_dict["pos_embed"].shape} to '
-    #                             f'{self.pos_embed.shape}')
-    #                 h, w = self.img_size
-    #                 pos_size = int(
-    #                     math.sqrt(state_dict['pos_embed'].shape[1] - 1))
-    #                 state_dict['pos_embed'] = self.resize_pos_embed(
-    #                     state_dict['pos_embed'],
-    #                     (h // self.patch_size, w // self.patch_size),
-    #                     (pos_size, pos_size), self.interpolate_mode)
+    def init_weights(self):
+        super(ViTDetVisionTransformer, self).init_weights()
 
-    #         load_state_dict(self, state_dict, strict=False, logger=logger)
-    #     elif self.init_cfg is not None:
-    #         super(VisionTransformer, self).init_weights()
-    #     else:
-    #         # We only implement the 'jax_impl' initialization implemented at
-    #         # https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/vision_transformer.py#L353  # noqa: E501
-    #         trunc_normal_(self.pos_embed, std=.02)
-    #         trunc_normal_(self.cls_token, std=.02)
-    #         for n, m in self.named_modules():
-    #             if isinstance(m, nn.Linear):
-    #                 trunc_normal_(m.weight, std=.02)
-    #                 if m.bias is not None:
-    #                     if 'ffn' in n:
-    #                         nn.init.normal_(m.bias, mean=0., std=1e-6)
-    #                     else:
-    #                         nn.init.constant_(m.bias, 0)
-    #             elif isinstance(m, nn.Conv2d):
-    #                 kaiming_init(m, mode='fan_in', bias=0.)
-    #             elif isinstance(m, (_BatchNorm, nn.GroupNorm, nn.LayerNorm)):
-    #                 constant_init(m, val=1.0, bias=0.)
+        if not (isinstance(self.init_cfg, dict)
+                and self.init_cfg['type'] == 'Pretrained'):
+            trunc_normal_(self.pos_embed, std=0.02)
+
+    def _prepare_checkpoint_hook(self, state_dict, prefix, *args, **kwargs):
+        name = prefix + 'pos_embed'
+        if name not in state_dict.keys():
+            return
+
+        ckpt_pos_embed_shape = state_dict[name].shape
+        if self.pos_embed.shape != ckpt_pos_embed_shape:
+            from mmcv.utils import print_log
+            logger = get_root_logger()
+            print_log(
+                f'Resize the pos_embed shape from {ckpt_pos_embed_shape} '
+                f'to {self.pos_embed.shape}.',
+                logger=logger)
+
+            ckpt_pos_embed_shape = to_2tuple(
+                int(np.sqrt(ckpt_pos_embed_shape[1] - self.num_extra_tokens)))
+            pos_embed_shape = self.patch_embed.patches_resolution
+
+            state_dict[name] = self.resize_pos_embed(state_dict[name],
+                                                     ckpt_pos_embed_shape,
+                                                     pos_embed_shape,
+                                                     self.interpolate_mode,
+                                                     self.num_extra_tokens)
+
+    @staticmethod
+    def resize_pos_embed(pos_embed,
+                         src_shape,
+                         dst_shape,
+                         mode='bicubic',
+                         num_extra_tokens=1):
+        """Resize pos_embed weights.
+
+        Args:
+            pos_embed (torch.Tensor): Position embedding weights with shape
+                [1, L, C].
+            src_shape (tuple): The resolution of downsampled origin training
+                image.
+            dst_shape (tuple): The resolution of downsampled new training
+                image.
+            mode (str): Algorithm used for upsampling:
+                ``'nearest'`` | ``'linear'`` | ``'bilinear'`` | ``'bicubic'`` |
+                ``'trilinear'``. Default: ``'bicubic'``
+        Return:
+            torch.Tensor: The resized pos_embed of shape [1, L_new, C]
+        """
+        assert pos_embed.ndim == 3, 'shape of pos_embed must be [1, L, C]'
+        _, L, C = pos_embed.shape
+        src_h, src_w = src_shape
+        assert L == src_h * src_w + num_extra_tokens
+        extra_tokens = pos_embed[:, :num_extra_tokens]
+
+        src_weight = pos_embed[:, num_extra_tokens:]
+        src_weight = src_weight.reshape(1, src_h, src_w, C).permute(0, 3, 1, 2)
+
+        dst_weight = F.interpolate(
+            src_weight, size=dst_shape, align_corners=False, mode=mode)
+        dst_weight = torch.flatten(dst_weight, 2).transpose(1, 2)
+
+        return torch.cat((extra_tokens, dst_weight), dim=1)
 
     def build_2d_sincos_position_embedding(self, temperature=10000.0):
-        h, w = self.grid_size
+        h, w = self.patches_resolution
         grid_w = torch.arange(w, dtype=torch.float32)
         grid_h = torch.arange(h, dtype=torch.float32)
         grid_w, grid_h = torch.meshgrid(grid_w, grid_h)
@@ -257,59 +394,49 @@ class ViTDetVisionTransformer(VisionTransformer):
         self.pos_embed2 = nn.Parameter(torch.cat([pe_token, pos_emb], dim=1))
         self.pos_embed2.requires_grad = False
 
-    def window_partition(self, x, hw_shape):
+    def window_partition(self, x, patches_resolution):
         B, L, C = x.shape
-        H, W = hw_shape[0], hw_shape[1]
+        H, W = patches_resolution[0], patches_resolution[1]
         x = x.reshape(self.window_size * self.window_size * B , -1, C)
         return x
 
-    def window_reverse(self, x, hw_shape):
+    def window_reverse(self, x, patches_resolution):
         B, L, C = x.shape
-        H, W = hw_shape[0], hw_shape[1]
+        H, W = patches_resolution[0], patches_resolution[1]
         x = x.reshape(B // (self.window_size * self.window_size), -1, C)
         return x 
 
     def forward(self, x):
-        # print("1", x.shape)
-        #B = x.shape[0]
-        x, hw_shape = self.patch_embed(x)
-        # print("2", x.shape)
+        x = self.patch_embed(x)
 
-        # stole cls_tokens impl from Phil Wang, thanks
-        # cls_tokens = self.cls_token.expand(B, -1, -1)
-        # x = torch.cat((cls_tokens, x), dim=1)
         if self.sincos_pos_embed:
             x = x + self.pos_embed2
-        # else:
-        #     x = self._pos_embeding(x, hw_shape, self.pos_embed)
+
         x = self.drop_after_pos(x)
 
-        # remove class token
-        # x = x[:, 1:]
-
         # window_partition
-        x = self.window_partition(x, hw_shape)
+        x = self.window_partition(x, self.patches_resolution)
 
         outs = []
-        for i, layer in enumerate(self.layers):
+        for i, layer in enumerate(self.blocks):
             # local self-attention & global self-attention
-            if (self.layers==12 and (i+1) % 3 == 0) or (self.layers==24 and (i+1) % 6 == 0):
-                x  = self.window_reverse(x, hw_shape)
+            if (self.blocks==12 and (i+1) % 3 == 0) or (self.blocks==24 and (i+1) % 6 == 0):
+                x  = self.window_reverse(x, self.patches_resolution)
                 x = layer(x)
-                x = self.window_partition(x, hw_shape)
+                x = self.window_partition(x, self.patches_resolution)
             else:
                 x = layer(x)
 
             if i in self.out_indices:
                 # window_reverse
-                out = self.window_reverse(x, hw_shape)
+                out = self.window_reverse(x, self.patches_resolution)
 
-                if i == len(self.layers) - 1:
+                if i == len(self.blocks) - 1:
                     if self.final_norm:
-                        out = self.norm1(out)
+                        out = self.norm(out)
                         
                 B, _, C = out.shape
-                out = out.reshape(B, hw_shape[0], hw_shape[1], C).permute(0, 3, 1, 2).contiguous()
+                out = out.reshape(B, self.patches_resolution[0], self.patches_resolution[1], C).permute(0, 3, 1, 2).contiguous()
                 outs.append(out)
 
         return tuple(outs)
