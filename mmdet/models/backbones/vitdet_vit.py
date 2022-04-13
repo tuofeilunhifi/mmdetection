@@ -1,9 +1,14 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+import math
 import torch
+import torch.nn as nn
 from mmcls.models import VisionTransformer
 from mmcv.cnn import build_norm_layer
 from mmcv.utils import to_2tuple
 from mmdet.models.utils import resize
+from mmcv.runner import (BaseModule, CheckpointLoader, ModuleList,
+                         load_state_dict)
+from ...utils import get_root_logger
 
 from ..builder import BACKBONES
 from ..utils.transformer import PatchEmbed
@@ -52,6 +57,7 @@ class ViTDetVisionTransformer(VisionTransformer):
                  norm_cfg=dict(type='LN', eps=1e-6),
                  final_norm=True,
                  output_cls_token=True,
+                 sincos_pos_embed=False,
                  interpolate_mode='bicubic',
                  patch_cfg=dict(),
                  layer_cfgs=dict(),
@@ -99,7 +105,15 @@ class ViTDetVisionTransformer(VisionTransformer):
             init_cfg=None,
         )
 
-        self.num_patches = self.patch_resolution[0] * self.patch_resolution[1]
+        self.grid_size = (1024 // self.patch_size, 1024 // self.patch_size)
+
+        # sincos pos embed
+        self.sincos_pos_embed = sincos_pos_embed
+        if sincos_pos_embed:
+            self.build_2d_sincos_position_embedding()
+
+        # remove pos_embed for extra tokens
+        self.pos_embed2 = nn.Parameter(self.pos_embed2[:, self.num_extra_tokens:, :])
 
         self.finetune = finetune
         if not self.finetune:
@@ -115,64 +129,133 @@ class ViTDetVisionTransformer(VisionTransformer):
         for _, param in self.named_parameters():
             param.requires_grad = False
 
-    def _pos_embeding(self, patched_img, hw_shape, pos_embed):
-        """Positiong embeding method.
-        Resize the pos_embed, if the input image size doesn't match
-            the training size.
-        Args:
-            patched_img (torch.Tensor): The patched image, it should be
-                shape of [B, L1, C].
-            hw_shape (tuple): The downsampled image resolution.
-            pos_embed (torch.Tensor): The pos_embed weighs, it should be
-                shape of [B, L2, c].
-        Return:
-            torch.Tensor: The pos encoded image feature.
-        """
-        assert patched_img.ndim == 3 and pos_embed.ndim == 3, \
-            'the shapes of patched_img and pos_embed must be [B, L, C]'
-        x_len, pos_len = patched_img.shape[1], pos_embed.shape[1]
-        if x_len != pos_len:
-            if pos_len == (self.img_size[0] // self.patch_size) * (
-                    self.img_size[1] // self.patch_size) + 1:
-                pos_h = self.img_size[0] // self.patch_size
-                pos_w = self.img_size[1] // self.patch_size
-            else:
-                raise ValueError(
-                    'Unexpected shape of pos_embed, got {}.'.format(
-                        pos_embed.shape))
-            pos_embed = self.resize_pos_embed(pos_embed, hw_shape,
-                                              (pos_h, pos_w),
-                                              self.interpolate_mode)
-        return patched_img + pos_embed
+    # def _pos_embeding(self, patched_img, hw_shape, pos_embed):
+    #     """Positiong embeding method.
+    #     Resize the pos_embed, if the input image size doesn't match
+    #         the training size.
+    #     Args:
+    #         patched_img (torch.Tensor): The patched image, it should be
+    #             shape of [B, L1, C].
+    #         hw_shape (tuple): The downsampled image resolution.
+    #         pos_embed (torch.Tensor): The pos_embed weighs, it should be
+    #             shape of [B, L2, c].
+    #     Return:
+    #         torch.Tensor: The pos encoded image feature.
+    #     """
+    #     assert patched_img.ndim == 3 and pos_embed.ndim == 3, \
+    #         'the shapes of patched_img and pos_embed must be [B, L, C]'
+    #     x_len, pos_len = patched_img.shape[1], pos_embed.shape[1]
+    #     if x_len != pos_len:
+    #         if pos_len == (self.img_size[0] // self.patch_size) * (
+    #                 self.img_size[1] // self.patch_size) + 1:
+    #             pos_h = self.img_size[0] // self.patch_size
+    #             pos_w = self.img_size[1] // self.patch_size
+    #         else:
+    #             raise ValueError(
+    #                 'Unexpected shape of pos_embed, got {}.'.format(
+    #                     pos_embed.shape))
+    #         pos_embed = self.resize_pos_embed(pos_embed, hw_shape,
+    #                                           (pos_h, pos_w),
+    #                                           self.interpolate_mode)
+    #     return patched_img + pos_embed
 
-    @staticmethod
-    def resize_pos_embed(pos_embed, input_shpae, pos_shape, mode):
-        """Resize pos_embed weights.
-        Resize pos_embed using bicubic interpolate method.
-        Args:
-            pos_embed (torch.Tensor): Position embedding weights.
-            input_shpae (tuple): Tuple for (downsampled input image height,
-                downsampled input image width).
-            pos_shape (tuple): The resolution of downsampled origin training
-                image.
-            mode (str): Algorithm used for upsampling:
-                ``'nearest'`` | ``'linear'`` | ``'bilinear'`` | ``'bicubic'`` |
-                ``'trilinear'``. Default: ``'nearest'``
-        Return:
-            torch.Tensor: The resized pos_embed of shape [B, L_new, C]
-        """
-        assert pos_embed.ndim == 3, 'shape of pos_embed must be [B, L, C]'
-        pos_h, pos_w = pos_shape
-        cls_token_weight = pos_embed[:, 0]
-        pos_embed_weight = pos_embed[:, (-1 * pos_h * pos_w):]
-        pos_embed_weight = pos_embed_weight.reshape(
-            1, pos_h, pos_w, pos_embed.shape[2]).permute(0, 3, 1, 2)
-        pos_embed_weight = resize(
-            pos_embed_weight, size=input_shpae, align_corners=False, mode=mode)
-        cls_token_weight = cls_token_weight.unsqueeze(1)
-        pos_embed_weight = torch.flatten(pos_embed_weight, 2).transpose(1, 2)
-        pos_embed = torch.cat((cls_token_weight, pos_embed_weight), dim=1)
-        return pos_embed
+    # @staticmethod
+    # def resize_pos_embed(pos_embed, input_shpae, pos_shape, mode):
+    #     """Resize pos_embed weights.
+    #     Resize pos_embed using bicubic interpolate method.
+    #     Args:
+    #         pos_embed (torch.Tensor): Position embedding weights.
+    #         input_shpae (tuple): Tuple for (downsampled input image height,
+    #             downsampled input image width).
+    #         pos_shape (tuple): The resolution of downsampled origin training
+    #             image.
+    #         mode (str): Algorithm used for upsampling:
+    #             ``'nearest'`` | ``'linear'`` | ``'bilinear'`` | ``'bicubic'`` |
+    #             ``'trilinear'``. Default: ``'nearest'``
+    #     Return:
+    #         torch.Tensor: The resized pos_embed of shape [B, L_new, C]
+    #     """
+    #     assert pos_embed.ndim == 3, 'shape of pos_embed must be [B, L, C]'
+    #     pos_h, pos_w = pos_shape
+    #     cls_token_weight = pos_embed[:, 0]
+    #     pos_embed_weight = pos_embed[:, (-1 * pos_h * pos_w):]
+    #     pos_embed_weight = pos_embed_weight.reshape(
+    #         1, pos_h, pos_w, pos_embed.shape[2]).permute(0, 3, 1, 2)
+    #     pos_embed_weight = resize(
+    #         pos_embed_weight, size=input_shpae, align_corners=False, mode=mode)
+    #     cls_token_weight = cls_token_weight.unsqueeze(1)
+    #     pos_embed_weight = torch.flatten(pos_embed_weight, 2).transpose(1, 2)
+    #     pos_embed = torch.cat((cls_token_weight, pos_embed_weight), dim=1)
+    #     return pos_embed
+
+    # def init_weights(self):
+    #     if (isinstance(self.init_cfg, dict)
+    #             and self.init_cfg.get('type') == 'Pretrained'):
+    #         logger = get_root_logger()
+    #         checkpoint = CheckpointLoader.load_checkpoint(
+    #             self.init_cfg['checkpoint'], logger=logger, map_location='cpu')
+
+    #         if 'state_dict' in checkpoint:
+    #             state_dict = checkpoint['state_dict']
+    #         else:
+    #             state_dict = checkpoint
+
+    #         if 'pos_embed' in state_dict.keys():
+    #             if self.pos_embed.shape != state_dict['pos_embed'].shape:
+    #                 logger.info(msg=f'Resize the pos_embed shape from '
+    #                             f'{state_dict["pos_embed"].shape} to '
+    #                             f'{self.pos_embed.shape}')
+    #                 h, w = self.img_size
+    #                 pos_size = int(
+    #                     math.sqrt(state_dict['pos_embed'].shape[1] - 1))
+    #                 state_dict['pos_embed'] = self.resize_pos_embed(
+    #                     state_dict['pos_embed'],
+    #                     (h // self.patch_size, w // self.patch_size),
+    #                     (pos_size, pos_size), self.interpolate_mode)
+
+    #         load_state_dict(self, state_dict, strict=False, logger=logger)
+    #     elif self.init_cfg is not None:
+    #         super(VisionTransformer, self).init_weights()
+    #     else:
+    #         # We only implement the 'jax_impl' initialization implemented at
+    #         # https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/vision_transformer.py#L353  # noqa: E501
+    #         trunc_normal_(self.pos_embed, std=.02)
+    #         trunc_normal_(self.cls_token, std=.02)
+    #         for n, m in self.named_modules():
+    #             if isinstance(m, nn.Linear):
+    #                 trunc_normal_(m.weight, std=.02)
+    #                 if m.bias is not None:
+    #                     if 'ffn' in n:
+    #                         nn.init.normal_(m.bias, mean=0., std=1e-6)
+    #                     else:
+    #                         nn.init.constant_(m.bias, 0)
+    #             elif isinstance(m, nn.Conv2d):
+    #                 kaiming_init(m, mode='fan_in', bias=0.)
+    #             elif isinstance(m, (_BatchNorm, nn.GroupNorm, nn.LayerNorm)):
+    #                 constant_init(m, val=1.0, bias=0.)
+
+    def build_2d_sincos_position_embedding(self, temperature=10000.0):
+        h, w = self.grid_size
+        grid_w = torch.arange(w, dtype=torch.float32)
+        grid_h = torch.arange(h, dtype=torch.float32)
+        grid_w, grid_h = torch.meshgrid(grid_w, grid_h)
+        assert (
+            self.embed_dims % 4 == 0
+        ), "Embed dimension must be divisible by 4 for 2D sin-cos position embedding"
+        pos_dim = self.embed_dims // 4
+        omega = torch.arange(pos_dim, dtype=torch.float32) / pos_dim
+        omega = 1.0 / (temperature ** omega)
+        out_w = torch.einsum("m,d->md", [grid_w.flatten(), omega])
+        out_h = torch.einsum("m,d->md", [grid_h.flatten(), omega])
+        pos_emb = torch.cat(
+            [torch.sin(out_w), torch.cos(out_w), torch.sin(out_h), torch.cos(out_h)],
+            dim=1,
+        )[None, :, :]
+
+        assert self.num_extra_tokens == 1, "Assuming one and only one token, [cls]"
+        pe_token = torch.zeros([1, 1, self.embed_dims], dtype=torch.float32)
+        self.pos_embed2 = nn.Parameter(torch.cat([pe_token, pos_emb], dim=1))
+        self.pos_embed2.requires_grad = False
 
     def window_partition(self, x, hw_shape):
         B, L, C = x.shape
@@ -188,18 +271,21 @@ class ViTDetVisionTransformer(VisionTransformer):
 
     def forward(self, x):
         # print("1", x.shape)
-        B = x.shape[0]
+        #B = x.shape[0]
         x, hw_shape = self.patch_embed(x)
         # print("2", x.shape)
 
         # stole cls_tokens impl from Phil Wang, thanks
-        cls_tokens = self.cls_token.expand(B, -1, -1)
-        x = torch.cat((cls_tokens, x), dim=1)
-        x = self._pos_embeding(x, hw_shape, self.pos_embed)
+        # cls_tokens = self.cls_token.expand(B, -1, -1)
+        # x = torch.cat((cls_tokens, x), dim=1)
+        if self.sincos_pos_embed:
+            x = x + self.pos_embed2
+        # else:
+        #     x = self._pos_embeding(x, hw_shape, self.pos_embed)
         x = self.drop_after_pos(x)
 
         # remove class token
-        x = x[:, 1:]
+        # x = x[:, 1:]
 
         # window_partition
         x = self.window_partition(x, hw_shape)
