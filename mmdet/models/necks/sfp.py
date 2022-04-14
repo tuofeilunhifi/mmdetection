@@ -45,8 +45,10 @@ class SFP(BaseModule):
                  conv_cfg=None,
                  norm_cfg=None,
                  act_cfg=None,
-                 init_cfg=dict(
-                     type='Xavier', layer=['Conv2d', 'ConvTranspose2d'], distribution='uniform')):
+                 init_cfg=[
+                     dict(type='Xavier', layer=['Conv2d', 'ConvTranspose2d'], distribution='uniform'), 
+                     dict(type='Constant', layer=['GroupNorm'], val=1)
+                ]]):
         super(SFP, self).__init__(init_cfg)
         assert isinstance(in_channels, int)
         self.in_channels = in_channels

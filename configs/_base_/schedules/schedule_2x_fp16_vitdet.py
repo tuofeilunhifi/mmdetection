@@ -1,5 +1,12 @@
 # optimizer
-optimizer = dict(type='AdamW', lr=1e-4, betas=(0.9, 0.999), weight_decay=0.1)
+paramwise_cfg=dict(
+    custom_keys={
+            'norm': dict(decay_mult=0.),
+            'pos_embed': dict(decay_mult=0.),
+    }
+)
+optimizer = dict(type='AdamW', lr=1e-4, betas=(0.9, 0.999), weight_decay=0.1, paramwise_cfg=paramwise_cfg)
+
 cumulative_iters = 4
 optimizer_config = dict(grad_clip=None, cumulative_iters=cumulative_iters)
 # learning policy
