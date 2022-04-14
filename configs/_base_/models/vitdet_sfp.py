@@ -10,14 +10,14 @@ model = dict(
     backbone=dict(
         type='ViTDetVisionTransformer',
         arch='b',
-        #img_size=1024,
+        img_size=1024,
         patch_size=16,
         window_size=16,
         drop_path_rate=0.1,
         out_indices=[11],
         final_norm=True,
         sincos_pos_embed=False,
-        init_cfg=dict(type='Pretrained', checkpoint='/home/yunji.cjy/pretrain/mae_vit-base-p16_8xb512-coslr-400e_in1k-224_20220223-85be947b.pth')),
+        init_cfg=dict(type='Pretrained', checkpoint='/home/yunji.cjy/pretrain/warpper_mae_vit-base-p16-1600e.pth')),
     neck=dict(
         type='SFP',
         in_channels=768,
@@ -107,7 +107,7 @@ model = dict(
                 pos_iou_thr=0.5,
                 neg_iou_thr=0.5,
                 min_pos_iou=0.5,
-                match_low_quality=True,
+                match_low_quality=False,
                 ignore_iof_thr=-1),
             sampler=dict(
                 type='RandomSampler',
