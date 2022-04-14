@@ -414,13 +414,13 @@ class ViTDetVisionTransformer(BaseModule):
     def window_partition(self, x, grid_size):
         B, L, C = x.shape
         H, W = grid_size[0], grid_size[1]
-        x = x.reshape(self.window_size * self.window_size * B , -1, C)
+        x = x.reshape(B * (H // self.window_size) * (W // self.window_size), self.window_size * self.window_size, C)
         return x
 
     def window_reverse(self, x, grid_size):
         B, L, C = x.shape
         H, W = grid_size[0], grid_size[1]
-        x = x.reshape(B // (self.window_size * self.window_size), -1, C)
+        x = x.reshape(B // ((H // self.window_size) * (W // self.window_size)), L * (H // self.window_size) * (W // self.window_size), C)
         return x 
 
     def forward(self, x):
