@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision.transforms import Resize
+from torchvision.transforms import Resize
 from mmcv.cnn import build_norm_layer
 from mmcv.cnn.utils.weight_init import trunc_normal_
 from mmcv.runner.base_module import BaseModule, ModuleList
