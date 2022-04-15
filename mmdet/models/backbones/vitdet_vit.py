@@ -314,15 +314,16 @@ class ViTDetVisionTransformer(BaseModule):
         self.output_cls_token = output_cls_token
         self.cls_token = nn.Parameter(torch.zeros(1, 1, self.embed_dims))
 
-        # Set position embedding
+        # set sincos_pos_embed or pos_embed
         self.sincos_pos_embed = sincos_pos_embed
         self.interpolate_mode = interpolate_mode
-        self.pos_embed = nn.Parameter(
-            torch.zeros(1, num_patches + self.num_extra_tokens,
-                        self.embed_dims))
-        # set sincos position embedding
+
         if self.sincos_pos_embed:
             self.build_2d_sincos_position_embedding()
+        else:
+            self.pos_embed = nn.Parameter(
+                torch.zeros(1, num_patches + self.num_extra_tokens,
+                            self.embed_dims)) 
 
         # set rel_pos_bias
         if use_rel_pos_bias:
@@ -378,35 +379,34 @@ class ViTDetVisionTransformer(BaseModule):
             trunc_normal_(self.pos_embed, std=0.02)
 
     def _prepare_checkpoint_hook(self, state_dict, prefix, *args, **kwargs):
+        name = prefix + 'pos_embed'
+        if name not in state_dict.keys():
+            return
 
         # sincos pos_embed
         if self.sincos_pos_embed:
             state_dict.pop(name)
             return
+        else:
+            # resize pos_embed
+            ckpt_pos_embed_shape = state_dict[name].shape
+            if self.pos_embed.shape != ckpt_pos_embed_shape:
+                from mmcv.utils import print_log
+                logger = get_root_logger()
+                print_log(
+                    f'Resize the pos_embed shape from {ckpt_pos_embed_shape} '
+                    f'to {self.pos_embed.shape}.',
+                    logger=logger)
 
-        # resize pos_embed
-        name = prefix + 'pos_embed'
-        if name not in state_dict.keys():
-            return
+                ckpt_pos_embed_shape = to_2tuple(
+                    int(np.sqrt(ckpt_pos_embed_shape[1] - self.num_extra_tokens)))
+                pos_embed_shape = self.grid_size
 
-        ckpt_pos_embed_shape = state_dict[name].shape
-        if self.pos_embed.shape != ckpt_pos_embed_shape:
-            from mmcv.utils import print_log
-            logger = get_root_logger()
-            print_log(
-                f'Resize the pos_embed shape from {ckpt_pos_embed_shape} '
-                f'to {self.pos_embed.shape}.',
-                logger=logger)
-
-            ckpt_pos_embed_shape = to_2tuple(
-                int(np.sqrt(ckpt_pos_embed_shape[1] - self.num_extra_tokens)))
-            pos_embed_shape = self.grid_size
-
-            state_dict[name] = self.resize_pos_embed(state_dict[name],
-                                                ckpt_pos_embed_shape,
-                                                pos_embed_shape,
-                                                self.interpolate_mode,
-                                                self.num_extra_tokens)
+                state_dict[name] = self.resize_pos_embed(state_dict[name],
+                                                    ckpt_pos_embed_shape,
+                                                    pos_embed_shape,
+                                                    self.interpolate_mode,
+                                                    self.num_extra_tokens)
 
 
     @staticmethod
