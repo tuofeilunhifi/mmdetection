@@ -108,12 +108,14 @@ class Attention(nn.Module):
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
 
-    def forward(self, x):
+    def forward(self, x, rel_pos_bias=None):
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
         q, k, v = qkv.unbind(0)   # make torchscript happy (cannot use tensor as tuple)
 
         attn = (q @ k.transpose(-2, -1)) * self.scale
+        if rel_pos_bias is not None:
+            attn = attn + rel_pos_bias
         attn = attn.softmax(dim=-1)
         attn = self.attn_drop(attn)
 
@@ -135,10 +137,48 @@ class Block(nn.Module):
         mlp_hidden_dim = int(dim * mlp_ratio)
         self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
 
-    def forward(self, x):
-        x = x + self.drop_path(self.attn(self.norm1(x)))
+    def forward(self, x, rel_pos_bias=None):
+        x = x + self.drop_path(self.attn(self.norm1(x), rel_pos_bias=rel_pos_bias))
         x = x + self.drop_path(self.mlp(self.norm2(x)))
         return x
+
+
+class RelativePositionBias(nn.Module):
+    def __init__(self, window_size, num_heads):
+        super().__init__()
+        self.window_size = window_size
+        self.num_relative_distance = (2 * window_size[0] - 1) * (2 * window_size[1] - 1)
+        self.relative_position_bias_table = nn.Parameter(
+            torch.zeros(self.num_relative_distance, num_heads)
+        )  # 2*Wh-1 * 2*Ww-1, nH
+
+        # get pair-wise relative position index for each token inside the window
+        coords_h = torch.arange(window_size[0])
+        coords_w = torch.arange(window_size[1])
+        coords = torch.stack(torch.meshgrid([coords_h, coords_w]))  # 2, Wh, Ww
+        coords_flatten = torch.flatten(coords, 1)  # 2, Wh*Ww
+        relative_coords = (
+            coords_flatten[:, :, None] - coords_flatten[:, None, :]
+        )  # 2, Wh*Ww, Wh*Ww
+        relative_coords = relative_coords.permute(
+            1, 2, 0
+        ).contiguous()  # Wh*Ww, Wh*Ww, 2
+        relative_coords[:, :, 0] += window_size[0] - 1  # shift to start from 0
+        relative_coords[:, :, 1] += window_size[1] - 1
+        relative_coords[:, :, 0] *= 2 * window_size[1] - 1
+        relative_position_index = relative_coords.sum(-1)  # Wh*Ww, Wh*Ww
+
+        self.register_buffer("relative_position_index", relative_position_index)
+
+    def forward(self):
+        relative_position_bias = self.relative_position_bias_table[
+            self.relative_position_index.view(-1)
+        ].view(
+            self.window_size[0] * self.window_size[1],
+            self.window_size[0] * self.window_size[1],
+            -1,
+        )  # Wh*Ww,Wh*Ww,nH
+        return relative_position_bias.permute(2, 0, 1).contiguous()  # nH, Wh*Ww, Wh*Ww
 
 
 @BACKBONES.register_module()
@@ -232,6 +272,7 @@ class ViTDetVisionTransformer(BaseModule):
                  final_norm=True,
                  output_cls_token=True,
                  sincos_pos_embed=False,
+                 use_rel_pos_bias=False,
                  interpolate_mode='bicubic',
                  patch_cfg=dict(),
                  layer_cfgs=dict(),
@@ -253,6 +294,7 @@ class ViTDetVisionTransformer(BaseModule):
 
         self.embed_dims = self.arch_settings['embed_dims']
         self.num_layers = self.arch_settings['num_layers']
+        self.num_heads = self.arch_settings['num_heads']
         norm_layer = partial(nn.LayerNorm, eps=1e-6)
 
         # Set patch embedding
@@ -279,6 +321,14 @@ class ViTDetVisionTransformer(BaseModule):
         if self.sincos_pos_embed:
             self.build_2d_sincos_position_embedding()
 
+        # set rel_pos_bias
+        if use_rel_pos_bias:
+            self.window_rel_pos_bias = RelativePositionBias(window_size=[self.window_size, self.window_size], num_heads=self.num_heads)
+            self.global_rel_pos_bias = RelativePositionBias(window_size=self.grid_size, num_heads=self.num_heads)
+        else:
+            self.window_rel_pos_bias = None
+            self.global_rel_pos_bias = None
+
         self.drop_after_pos = nn.Dropout(p=drop_rate)
 
         if isinstance(out_indices, int):
@@ -301,7 +351,7 @@ class ViTDetVisionTransformer(BaseModule):
         for i in range(self.num_layers):
             _layer_cfg = dict(
                 dim=self.embed_dims,
-                num_heads=self.arch_settings['num_heads'],
+                num_heads=self.num_heads,
                 mlp_ratio=4.,
                 qkv_bias=True,
                 drop=drop_rate,
@@ -325,12 +375,15 @@ class ViTDetVisionTransformer(BaseModule):
             trunc_normal_(self.pos_embed, std=0.02)
 
     def _prepare_checkpoint_hook(self, state_dict, prefix, *args, **kwargs):
-        name = prefix + 'pos_embed'
-        if name not in state_dict.keys():
-            return
 
+        # sincos pos_embed
         if self.sincos_pos_embed:
             state_dict.pop(name)
+            return
+
+        # resize pos_embed
+        name = prefix + 'pos_embed'
+        if name not in state_dict.keys():
             return
 
         ckpt_pos_embed_shape = state_dict[name].shape
@@ -351,6 +404,7 @@ class ViTDetVisionTransformer(BaseModule):
                                                 pos_embed_shape,
                                                 self.interpolate_mode,
                                                 self.num_extra_tokens)
+
 
     @staticmethod
     def resize_pos_embed(pos_embed,
@@ -438,10 +492,10 @@ class ViTDetVisionTransformer(BaseModule):
             # local self-attention & global self-attention
             if (self.blocks==12 and (i+1) % 3 == 0) or (self.blocks==24 and (i+1) % 6 == 0):
                 x  = self.window_reverse(x, self.grid_size)
-                x = layer(x)
+                x = layer(x, self.global_rel_pos_bias())
                 x = self.window_partition(x, self.grid_size)
             else:
-                x = layer(x)
+                x = layer(x, self.window_rel_pos_bias())
 
             if i in self.out_indices:
                 # window_reverse

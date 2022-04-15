@@ -1,7 +1,8 @@
 _base_ = [
-    '../_base_/models/mask_rcnn_vitdet_sfp.py',
+    '../_base_/models/vitdet_sfp.py',
     '../_base_/datasets/coco_instance_vitdet_100e.py',
-    '../_base_/schedules/schedule_100e_fp16_vitdet.py', '../_base_/default_runtime.py'
+    '../_base_/schedules/schedule_vitdet_fp16_100e.py', '../_base_/default_runtime.py'
 ]
 
 checkpoint_config = dict(interval=5)
+find_unused_parameters=True

@@ -1,0 +1,1202 @@
+/home/yunji.cjy/anaconda3/envs/openmmlab/lib/python3.7/site-packages/torch/distributed/launch.py:186: FutureWarning: The module torch.distributed.launch is deprecated
+and will be removed in future. Use torchrun.
+Note that --use_env is set by default in torchrun.
+If your script expects `--local_rank` argument to be set, please
+change it to read from `os.environ['LOCAL_RANK']` instead. See 
+https://pytorch.org/docs/stable/distributed.html#launch-utility for 
+further instructions
+
+  FutureWarning,
+WARNING:torch.distributed.run:
+*****************************************
+Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+*****************************************
+/home/yunji.cjy/codebase/mmdetection/mmdet/utils/setup_env.py:43: UserWarning: Setting MKL_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed.
+  f'Setting MKL_NUM_THREADS environment variable for each process '
+/home/yunji.cjy/codebase/mmdetection/mmdet/utils/setup_env.py:43: UserWarning: Setting MKL_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed.
+  f'Setting MKL_NUM_THREADS environment variable for each process '
+/home/yunji.cjy/codebase/mmdetection/mmdet/utils/setup_env.py:43: UserWarning: Setting MKL_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed.
+  f'Setting MKL_NUM_THREADS environment variable for each process '
+/home/yunji.cjy/codebase/mmdetection/mmdet/utils/setup_env.py:43: UserWarning: Setting MKL_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed.
+  f'Setting MKL_NUM_THREADS environment variable for each process '
+/home/yunji.cjy/codebase/mmdetection/mmdet/utils/setup_env.py:43: UserWarning: Setting MKL_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed.
+  f'Setting MKL_NUM_THREADS environment variable for each process '
+/home/yunji.cjy/codebase/mmdetection/mmdet/utils/setup_env.py:43: UserWarning: Setting MKL_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed.
+  f'Setting MKL_NUM_THREADS environment variable for each process '
+/home/yunji.cjy/codebase/mmdetection/mmdet/utils/setup_env.py:43: UserWarning: Setting MKL_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed.
+  f'Setting MKL_NUM_THREADS environment variable for each process '
+/home/yunji.cjy/codebase/mmdetection/mmdet/utils/setup_env.py:43: UserWarning: Setting MKL_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed.
+  f'Setting MKL_NUM_THREADS environment variable for each process '
+2022-04-15 11:33:25,382 - mmdet - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.7.13 (default, Mar 29 2022, 02:18:16) [GCC 7.5.0]
+CUDA available: True
+GPU 0,1,2,3,4,5,6,7: Tesla V100-SXM2-16GB
+CUDA_HOME: /usr/local/cuda
+NVCC: Cuda compilation tools, release 10.2, V10.2.89
+GCC: gcc (GCC) 4.8.5 20150623 (Red Hat 4.8.5-28)
+PyTorch: 1.10.0
+PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) oneAPI Math Kernel Library Version 2021.4-Product Build 20210904 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v2.2.3 (Git Hash 7336ca9f055cf1bfa13efb658fe15dc9b41f0740)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - LAPACK is enabled (usually provided by MKL)
+  - NNPACK is enabled
+  - CPU capability usage: AVX512
+  - CUDA Runtime 10.2
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_61,code=sm_61;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_37,code=compute_37
+  - CuDNN 7.6.5
+  - Magma 2.5.2
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=10.2, CUDNN_VERSION=7.6.5, CXX_COMPILER=/opt/rh/devtoolset-7/root/usr/bin/c++, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_KINETO -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -DEDGE_PROFILER_USE_KINETO -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=1.10.0, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+TorchVision: 0.11.0
+OpenCV: 4.5.5
+MMCV: 1.4.8
+MMCV Compiler: GCC 7.3
+MMCV CUDA Compiler: 10.2
+MMDetection: 2.23.0+aaa0ce0
+------------------------------------------------------------
+
+2022-04-15 11:33:26,166 - mmdet - INFO - Distributed training: True
+2022-04-15 11:33:26,944 - mmdet - INFO - Config:
+norm_cfg = dict(type='SyncBN', requires_grad=True)
+head_norm_cfg = dict(type='MMSyncBN', requires_grad=True)
+model = dict(
+    type='MaskRCNN',
+    backbone=dict(
+        type='ViTDetVisionTransformer',
+        arch='b',
+        img_size=1024,
+        patch_size=16,
+        window_size=16,
+        drop_path_rate=0.1,
+        out_indices=[11],
+        final_norm=True,
+        sincos_pos_embed=False,
+        use_rel_pos_bias=True,
+        init_cfg=dict(
+            type='Pretrained',
+            checkpoint=
+            '/home/yunji.cjy/pretrain/warpper_mae_vit-base-p16-1600e.pth')),
+    neck=dict(
+        type='SFP',
+        in_channels=768,
+        out_channels=256,
+        norm_cfg=dict(type='LN')),
+    rpn_head=dict(
+        type='RPNHead',
+        in_channels=256,
+        feat_channels=256,
+        num_convs=2,
+        anchor_generator=dict(
+            type='AnchorGenerator',
+            scales=[8],
+            ratios=[0.5, 1.0, 2.0],
+            strides=[4, 8, 16, 32]),
+        bbox_coder=dict(
+            type='DeltaXYWHBBoxCoder',
+            target_means=[0.0, 0.0, 0.0, 0.0],
+            target_stds=[1.0, 1.0, 1.0, 1.0]),
+        loss_cls=dict(
+            type='CrossEntropyLoss', use_sigmoid=True, loss_weight=1.0),
+        loss_bbox=dict(type='L1Loss', loss_weight=1.0)),
+    roi_head=dict(
+        type='StandardRoIHead',
+        bbox_roi_extractor=dict(
+            type='SingleRoIExtractor',
+            roi_layer=dict(type='RoIAlign', output_size=7, sampling_ratio=0),
+            out_channels=256,
+            featmap_strides=[4, 8, 16, 32]),
+        bbox_head=dict(
+            type='Shared4Conv1FCBBoxHead',
+            conv_out_channels=256,
+            norm_cfg=dict(type='MMSyncBN', requires_grad=True),
+            in_channels=256,
+            fc_out_channels=1024,
+            roi_feat_size=7,
+            num_classes=80,
+            bbox_coder=dict(
+                type='DeltaXYWHBBoxCoder',
+                target_means=[0.0, 0.0, 0.0, 0.0],
+                target_stds=[0.1, 0.1, 0.2, 0.2]),
+            reg_class_agnostic=False,
+            loss_cls=dict(
+                type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
+            loss_bbox=dict(type='L1Loss', loss_weight=1.0)),
+        mask_roi_extractor=dict(
+            type='SingleRoIExtractor',
+            roi_layer=dict(type='RoIAlign', output_size=14, sampling_ratio=0),
+            out_channels=256,
+            featmap_strides=[4, 8, 16, 32]),
+        mask_head=dict(
+            type='FCNMaskHead',
+            norm_cfg=dict(type='MMSyncBN', requires_grad=True),
+            num_convs=4,
+            in_channels=256,
+            conv_out_channels=256,
+            num_classes=80,
+            loss_mask=dict(
+                type='CrossEntropyLoss', use_mask=True, loss_weight=1.0))),
+    train_cfg=dict(
+        rpn=dict(
+            assigner=dict(
+                type='MaxIoUAssigner',
+                pos_iou_thr=0.7,
+                neg_iou_thr=0.3,
+                min_pos_iou=0.3,
+                match_low_quality=True,
+                ignore_iof_thr=-1),
+            sampler=dict(
+                type='RandomSampler',
+                num=256,
+                pos_fraction=0.5,
+                neg_pos_ub=-1,
+                add_gt_as_proposals=False),
+            allowed_border=-1,
+            pos_weight=-1,
+            debug=False),
+        rpn_proposal=dict(
+            nms_pre=2000,
+            max_per_img=1000,
+            nms=dict(type='nms', iou_threshold=0.7),
+            min_bbox_size=0),
+        rcnn=dict(
+            assigner=dict(
+                type='MaxIoUAssigner',
+                pos_iou_thr=0.5,
+                neg_iou_thr=0.5,
+                min_pos_iou=0.5,
+                match_low_quality=True,
+                ignore_iof_thr=-1),
+            sampler=dict(
+                type='RandomSampler',
+                num=512,
+                pos_fraction=0.25,
+                neg_pos_ub=-1,
+                add_gt_as_proposals=True),
+            mask_size=28,
+            pos_weight=-1,
+            debug=False)),
+    test_cfg=dict(
+        rpn=dict(
+            nms_pre=1000,
+            max_per_img=1000,
+            nms=dict(type='nms', iou_threshold=0.7),
+            min_bbox_size=0),
+        rcnn=dict(
+            score_thr=0.05,
+            nms=dict(type='nms', iou_threshold=0.5),
+            max_per_img=100,
+            mask_thr_binary=0.5)))
+dataset_type = 'CocoDataset'
+data_root = '/home/yunji.cjy/data/coco/'
+img_norm_cfg = dict(
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+image_size = (1024, 1024)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+    dict(
+        type='Resize',
+        img_scale=(1024, 1024),
+        ratio_range=(0.1, 2.0),
+        multiscale_mode='range',
+        keep_ratio=True),
+    dict(
+        type='RandomCrop',
+        crop_type='absolute_range',
+        crop_size=(1024, 1024),
+        recompute_bbox=True,
+        allow_negative_crop=True),
+    dict(type='FilterAnnotations', min_gt_bbox_wh=(0.01, 0.01)),
+    dict(type='RandomFlip', flip_ratio=0.5),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='Pad', size=(1024, 1024)),
+    dict(type='DefaultFormatBundle'),
+    dict(type='Collect', keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks'])
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(1024, 1024),
+        flip=False,
+        transforms=[
+            dict(type='Resize', keep_ratio=True),
+            dict(type='RandomFlip'),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='Pad', size=(1024, 1024)),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ])
+]
+data = dict(
+    samples_per_gpu=2,
+    workers_per_gpu=2,
+    train=dict(
+        type='RepeatDataset',
+        times=4,
+        dataset=dict(
+            type='CocoDataset',
+            ann_file=
+            '/home/yunji.cjy/data/coco/annotations/instances_train2017.json',
+            img_prefix='/home/yunji.cjy/data/coco/train2017/',
+            pipeline=[
+                dict(type='LoadImageFromFile'),
+                dict(type='LoadAnnotations', with_bbox=True, with_mask=True),
+                dict(
+                    type='Resize',
+                    img_scale=(1024, 1024),
+                    ratio_range=(0.1, 2.0),
+                    multiscale_mode='range',
+                    keep_ratio=True),
+                dict(
+                    type='RandomCrop',
+                    crop_type='absolute_range',
+                    crop_size=(1024, 1024),
+                    recompute_bbox=True,
+                    allow_negative_crop=True),
+                dict(type='FilterAnnotations', min_gt_bbox_wh=(0.01, 0.01)),
+                dict(type='RandomFlip', flip_ratio=0.5),
+                dict(
+                    type='Normalize',
+                    mean=[123.675, 116.28, 103.53],
+                    std=[58.395, 57.12, 57.375],
+                    to_rgb=True),
+                dict(type='Pad', size=(1024, 1024)),
+                dict(type='DefaultFormatBundle'),
+                dict(
+                    type='Collect',
+                    keys=['img', 'gt_bboxes', 'gt_labels', 'gt_masks'])
+            ])),
+    val=dict(
+        type='CocoDataset',
+        ann_file='/home/yunji.cjy/data/coco/annotations/instances_val2017.json',
+        img_prefix='/home/yunji.cjy/data/coco/val2017/',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(1024, 1024),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=True),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[123.675, 116.28, 103.53],
+                        std=[58.395, 57.12, 57.375],
+                        to_rgb=True),
+                    dict(type='Pad', size=(1024, 1024)),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ]),
+    test=dict(
+        type='CocoDataset',
+        ann_file='/home/yunji.cjy/data/coco/annotations/instances_val2017.json',
+        img_prefix='/home/yunji.cjy/data/coco/val2017/',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(1024, 1024),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=True),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[123.675, 116.28, 103.53],
+                        std=[58.395, 57.12, 57.375],
+                        to_rgb=True),
+                    dict(type='Pad', size=(1024, 1024)),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ]))
+evaluation = dict(interval=1, metric=['bbox', 'segm'])
+paramwise_cfg = dict(
+    norm=dict(weight_decay=0.0),
+    bias=dict(weight_decay=0.0),
+    pos_embed=dict(weight_decay=0.0),
+    cls_token=dict(weight_decay=0.0))
+optimizer = dict(
+    type='AdamW',
+    lr=0.0001,
+    betas=(0.9, 0.999),
+    weight_decay=0.1,
+    constructor='TransformerFinetuneConstructor',
+    model_type='vit',
+    layer_decay=0.7,
+    paramwise_cfg=dict(
+        norm=dict(weight_decay=0.0),
+        bias=dict(weight_decay=0.0),
+        pos_embed=dict(weight_decay=0.0),
+        cls_token=dict(weight_decay=0.0)))
+cumulative_iters = 4
+optimizer_config = dict(grad_clip=None, cumulative_iters=4)
+lr_config = dict(
+    policy='step',
+    warmup='linear',
+    warmup_iters=1000,
+    warmup_ratio=0.001,
+    step=[22, 24])
+runner = dict(type='EpochBasedRunner', max_epochs=25)
+fp16 = dict(loss_scale=dict(init_scale=512))
+checkpoint_config = dict(interval=5)
+log_config = dict(interval=50, hooks=[dict(type='TextLoggerHook')])
+custom_hooks = [dict(type='NumClassCheckHook')]
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = None
+resume_from = None
+workflow = [('train', 1)]
+opencv_num_threads = 0
+mp_start_method = 'fork'
+find_unused_parameters = True
+work_dir = './work_dirs/vitdet_sfp_100e_fp16_coco'
+auto_resume = False
+gpu_ids = range(0, 8)
+
+2022-04-15 11:33:33,034 - mmdet - INFO - Set random seed to 486155617, deterministic: False
+/home/yunji.cjy/anaconda3/envs/openmmlab/lib/python3.7/site-packages/torch/functional.py:445: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at  /opt/conda/conda-bld/pytorch_1634272126608/work/aten/src/ATen/native/TensorShape.cpp:2157.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+/home/yunji.cjy/anaconda3/envs/openmmlab/lib/python3.7/site-packages/torch/functional.py:445: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at  /opt/conda/conda-bld/pytorch_1634272126608/work/aten/src/ATen/native/TensorShape.cpp:2157.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+/home/yunji.cjy/anaconda3/envs/openmmlab/lib/python3.7/site-packages/torch/functional.py:445: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at  /opt/conda/conda-bld/pytorch_1634272126608/work/aten/src/ATen/native/TensorShape.cpp:2157.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+/home/yunji.cjy/anaconda3/envs/openmmlab/lib/python3.7/site-packages/torch/functional.py:445: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at  /opt/conda/conda-bld/pytorch_1634272126608/work/aten/src/ATen/native/TensorShape.cpp:2157.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+/home/yunji.cjy/anaconda3/envs/openmmlab/lib/python3.7/site-packages/torch/functional.py:445: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at  /opt/conda/conda-bld/pytorch_1634272126608/work/aten/src/ATen/native/TensorShape.cpp:2157.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+/home/yunji.cjy/anaconda3/envs/openmmlab/lib/python3.7/site-packages/torch/functional.py:445: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at  /opt/conda/conda-bld/pytorch_1634272126608/work/aten/src/ATen/native/TensorShape.cpp:2157.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+/home/yunji.cjy/anaconda3/envs/openmmlab/lib/python3.7/site-packages/torch/functional.py:445: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at  /opt/conda/conda-bld/pytorch_1634272126608/work/aten/src/ATen/native/TensorShape.cpp:2157.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+/home/yunji.cjy/anaconda3/envs/openmmlab/lib/python3.7/site-packages/torch/functional.py:445: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at  /opt/conda/conda-bld/pytorch_1634272126608/work/aten/src/ATen/native/TensorShape.cpp:2157.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+2022-04-15 11:33:35,295 - mmdet - INFO - initialize ViTDetVisionTransformer with init_cfg {'type': 'Pretrained', 'checkpoint': '/home/yunji.cjy/pretrain/warpper_mae_vit-base-p16-1600e.pth'}
+2022-04-15 11:33:35,296 - mmcv - INFO - load model from: /home/yunji.cjy/pretrain/warpper_mae_vit-base-p16-1600e.pth
+2022-04-15 11:33:35,296 - mmcv - INFO - load checkpoint from local path: /home/yunji.cjy/pretrain/warpper_mae_vit-base-p16-1600e.pth
+2022-04-15 11:33:35,568 - mmdet - INFO - Resize the pos_embed shape from torch.Size([1, 197, 768]) to torch.Size([1, 4097, 768]).
+2022-04-15 11:33:35,753 - mmcv - WARNING - The model and loaded state dict do not match exactly
+
+missing keys in source state_dict: window_rel_pos_bias.relative_position_bias_table, window_rel_pos_bias.relative_position_index, global_rel_pos_bias.relative_position_bias_table, global_rel_pos_bias.relative_position_index
+
+2022-04-15 11:33:35,886 - mmdet - INFO - initialize SFP with init_cfg [{'type': 'Xavier', 'layer': ['Conv2d', 'ConvTranspose2d'], 'distribution': 'uniform'}, {'type': 'Constant', 'layer': ['GroupNorm'], 'val': 1}]
+2022-04-15 11:33:35,976 - mmdet - INFO - initialize RPNHead with init_cfg {'type': 'Normal', 'layer': 'Conv2d', 'std': 0.01}
+2022-04-15 11:33:35,987 - mmdet - INFO - initialize Shared4Conv1FCBBoxHead with init_cfg [{'type': 'Normal', 'std': 0.01, 'override': {'name': 'fc_cls'}}, {'type': 'Normal', 'std': 0.001, 'override': {'name': 'fc_reg'}}, {'type': 'Xavier', 'distribution': 'uniform', 'override': [{'name': 'shared_fcs'}, {'name': 'cls_fcs'}, {'name': 'reg_fcs'}]}]
+loading annotations into memory...
+loading annotations into memory...
+loading annotations into memory...
+loading annotations into memory...
+loading annotations into memory...
+2022-04-15 11:33:36,152 - mmdet - INFO - model:MaskRCNN(
+  (backbone): ViTDetVisionTransformer(
+    (patch_embed): PatchEmbed(
+      (proj): Conv2d(3, 768, kernel_size=(16, 16), stride=(16, 16))
+      (norm): Identity()
+    )
+    (window_rel_pos_bias): RelativePositionBias()
+    (global_rel_pos_bias): RelativePositionBias()
+    (drop_after_pos): Dropout(p=0.0, inplace=False)
+    (blocks): ModuleList(
+      (0): Block(
+        (norm1): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (qkv): Linear(in_features=768, out_features=2304, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=768, out_features=768, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): Identity()
+        (norm2): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=768, out_features=3072, bias=True)
+          (act): GELU()
+          (drop1): Dropout(p=0.0, inplace=False)
+          (fc2): Linear(in_features=3072, out_features=768, bias=True)
+          (drop2): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (1): Block(
+        (norm1): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (qkv): Linear(in_features=768, out_features=2304, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=768, out_features=768, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): DropPath()
+        (norm2): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=768, out_features=3072, bias=True)
+          (act): GELU()
+          (drop1): Dropout(p=0.0, inplace=False)
+          (fc2): Linear(in_features=3072, out_features=768, bias=True)
+          (drop2): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (2): Block(
+        (norm1): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (qkv): Linear(in_features=768, out_features=2304, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=768, out_features=768, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): DropPath()
+        (norm2): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=768, out_features=3072, bias=True)
+          (act): GELU()
+          (drop1): Dropout(p=0.0, inplace=False)
+          (fc2): Linear(in_features=3072, out_features=768, bias=True)
+          (drop2): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (3): Block(
+        (norm1): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (qkv): Linear(in_features=768, out_features=2304, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=768, out_features=768, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): DropPath()
+        (norm2): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=768, out_features=3072, bias=True)
+          (act): GELU()
+          (drop1): Dropout(p=0.0, inplace=False)
+          (fc2): Linear(in_features=3072, out_features=768, bias=True)
+          (drop2): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (4): Block(
+        (norm1): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (qkv): Linear(in_features=768, out_features=2304, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=768, out_features=768, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): DropPath()
+        (norm2): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=768, out_features=3072, bias=True)
+          (act): GELU()
+          (drop1): Dropout(p=0.0, inplace=False)
+          (fc2): Linear(in_features=3072, out_features=768, bias=True)
+          (drop2): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (5): Block(
+        (norm1): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (qkv): Linear(in_features=768, out_features=2304, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=768, out_features=768, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): DropPath()
+        (norm2): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=768, out_features=3072, bias=True)
+          (act): GELU()
+          (drop1): Dropout(p=0.0, inplace=False)
+          (fc2): Linear(in_features=3072, out_features=768, bias=True)
+          (drop2): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (6): Block(
+        (norm1): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (qkv): Linear(in_features=768, out_features=2304, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=768, out_features=768, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): DropPath()
+        (norm2): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=768, out_features=3072, bias=True)
+          (act): GELU()
+          (drop1): Dropout(p=0.0, inplace=False)
+          (fc2): Linear(in_features=3072, out_features=768, bias=True)
+          (drop2): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (7): Block(
+        (norm1): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (qkv): Linear(in_features=768, out_features=2304, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=768, out_features=768, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): DropPath()
+        (norm2): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=768, out_features=3072, bias=True)
+          (act): GELU()
+          (drop1): Dropout(p=0.0, inplace=False)
+          (fc2): Linear(in_features=3072, out_features=768, bias=True)
+          (drop2): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (8): Block(
+        (norm1): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (qkv): Linear(in_features=768, out_features=2304, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=768, out_features=768, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): DropPath()
+        (norm2): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=768, out_features=3072, bias=True)
+          (act): GELU()
+          (drop1): Dropout(p=0.0, inplace=False)
+          (fc2): Linear(in_features=3072, out_features=768, bias=True)
+          (drop2): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (9): Block(
+        (norm1): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (qkv): Linear(in_features=768, out_features=2304, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=768, out_features=768, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): DropPath()
+        (norm2): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=768, out_features=3072, bias=True)
+          (act): GELU()
+          (drop1): Dropout(p=0.0, inplace=False)
+          (fc2): Linear(in_features=3072, out_features=768, bias=True)
+          (drop2): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (10): Block(
+        (norm1): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (qkv): Linear(in_features=768, out_features=2304, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=768, out_features=768, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): DropPath()
+        (norm2): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=768, out_features=3072, bias=True)
+          (act): GELU()
+          (drop1): Dropout(p=0.0, inplace=False)
+          (fc2): Linear(in_features=3072, out_features=768, bias=True)
+          (drop2): Dropout(p=0.0, inplace=False)
+        )
+      )
+      (11): Block(
+        (norm1): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (attn): Attention(
+          (qkv): Linear(in_features=768, out_features=2304, bias=True)
+          (attn_drop): Dropout(p=0.0, inplace=False)
+          (proj): Linear(in_features=768, out_features=768, bias=True)
+          (proj_drop): Dropout(p=0.0, inplace=False)
+        )
+        (drop_path): DropPath()
+        (norm2): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+        (mlp): Mlp(
+          (fc1): Linear(in_features=768, out_features=3072, bias=True)
+          (act): GELU()
+          (drop1): Dropout(p=0.0, inplace=False)
+          (fc2): Linear(in_features=3072, out_features=768, bias=True)
+          (drop2): Dropout(p=0.0, inplace=False)
+        )
+      )
+    )
+    (norm): LayerNorm((768,), eps=1e-06, elementwise_affine=True)
+  )
+  init_cfg={'type': 'Pretrained', 'checkpoint': '/home/yunji.cjy/pretrain/warpper_mae_vit-base-p16-1600e.pth'}
+  (neck): SFP(
+    (top_downs): ModuleList(
+      (0): Sequential(
+        (0): ConvTranspose2d(768, 768, kernel_size=(2, 2), stride=(2, 2))
+        (1): GroupNorm(1, 768, eps=1e-06, affine=True)
+        (2): GELU()
+        (3): ConvTranspose2d(768, 768, kernel_size=(2, 2), stride=(2, 2))
+      )
+      (1): ConvTranspose2d(768, 768, kernel_size=(2, 2), stride=(2, 2))
+      (2): Identity()
+      (3): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    )
+    (sfp_outs): ModuleList(
+      (0): Sequential(
+        (0): Conv2d(768, 256, kernel_size=(1, 1), stride=(1, 1))
+        (1): GroupNorm(1, 256, eps=1e-06, affine=True)
+        (2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (3): GroupNorm(1, 256, eps=1e-06, affine=True)
+      )
+      (1): Sequential(
+        (0): Conv2d(768, 256, kernel_size=(1, 1), stride=(1, 1))
+        (1): GroupNorm(1, 256, eps=1e-06, affine=True)
+        (2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (3): GroupNorm(1, 256, eps=1e-06, affine=True)
+      )
+      (2): Sequential(
+        (0): Conv2d(768, 256, kernel_size=(1, 1), stride=(1, 1))
+        (1): GroupNorm(1, 256, eps=1e-06, affine=True)
+        (2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (3): GroupNorm(1, 256, eps=1e-06, affine=True)
+      )
+      (3): Sequential(
+        (0): Conv2d(768, 256, kernel_size=(1, 1), stride=(1, 1))
+        (1): GroupNorm(1, 256, eps=1e-06, affine=True)
+        (2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (3): GroupNorm(1, 256, eps=1e-06, affine=True)
+      )
+    )
+  )
+  init_cfg=[{'type': 'Xavier', 'layer': ['Conv2d', 'ConvTranspose2d'], 'distribution': 'uniform'}, {'type': 'Constant', 'layer': ['GroupNorm'], 'val': 1}]
+  (rpn_head): RPNHead(
+    (loss_cls): CrossEntropyLoss(avg_non_ignore=False)
+    (loss_bbox): L1Loss()
+    (rpn_conv): Sequential(
+      (0): ConvModule(
+        (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (activate): ReLU()
+      )
+      (1): ConvModule(
+        (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        (activate): ReLU()
+      )
+    )
+    (rpn_cls): Conv2d(256, 3, kernel_size=(1, 1), stride=(1, 1))
+    (rpn_reg): Conv2d(256, 12, kernel_size=(1, 1), stride=(1, 1))
+  )
+  init_cfg={'type': 'Normal', 'layer': 'Conv2d', 'std': 0.01}
+  (roi_head): StandardRoIHead(
+    (bbox_roi_extractor): SingleRoIExtractor(
+      (roi_layers): ModuleList(
+        (0): RoIAlign(output_size=(7, 7), spatial_scale=0.25, sampling_ratio=0, pool_mode=avg, aligned=True, use_torchvision=False)
+        (1): RoIAlign(output_size=(7, 7), spatial_scale=0.125, sampling_ratio=0, pool_mode=avg, aligned=True, use_torchvision=False)
+        (2): RoIAlign(output_size=(7, 7), spatial_scale=0.0625, sampling_ratio=0, pool_mode=avg, aligned=True, use_torchvision=False)
+        (3): RoIAlign(output_size=(7, 7), spatial_scale=0.03125, sampling_ratio=0, pool_mode=avg, aligned=True, use_torchvision=False)
+      )
+    )
+    (bbox_head): Shared4Conv1FCBBoxHead(
+      (loss_cls): CrossEntropyLoss(avg_non_ignore=False)
+      (loss_bbox): L1Loss()
+      (fc_cls): Linear(in_features=1024, out_features=81, bias=True)
+      (fc_reg): Linear(in_features=1024, out_features=320, bias=True)
+      (shared_convs): ModuleList(
+        (0): ConvModule(
+          (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): SyncBatchNorm(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True, group_size=8,stats_mode=default)
+          (activate): ReLU(inplace=True)
+        )
+        (1): ConvModule(
+          (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): SyncBatchNorm(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True, group_size=8,stats_mode=default)
+          (activate): ReLU(inplace=True)
+        )
+        (2): ConvModule(
+          (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): SyncBatchNorm(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True, group_size=8,stats_mode=default)
+          (activate): ReLU(inplace=True)
+        )
+        (3): ConvModule(
+          (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): SyncBatchNorm(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True, group_size=8,stats_mode=default)
+          (activate): ReLU(inplace=True)
+        )
+      )
+      (shared_fcs): ModuleList(
+        (0): Linear(in_features=12544, out_features=1024, bias=True)
+      )
+      (cls_convs): ModuleList()
+      (cls_fcs): ModuleList()
+      (reg_convs): ModuleList()
+      (reg_fcs): ModuleList()
+      (relu): ReLU(inplace=True)
+    )
+    init_cfg=[{'type': 'Normal', 'std': 0.01, 'override': {'name': 'fc_cls'}}, {'type': 'Normal', 'std': 0.001, 'override': {'name': 'fc_reg'}}, {'type': 'Xavier', 'distribution': 'uniform', 'override': [{'name': 'shared_fcs'}, {'name': 'cls_fcs'}, {'name': 'reg_fcs'}]}]
+    (mask_roi_extractor): SingleRoIExtractor(
+      (roi_layers): ModuleList(
+        (0): RoIAlign(output_size=(14, 14), spatial_scale=0.25, sampling_ratio=0, pool_mode=avg, aligned=True, use_torchvision=False)
+        (1): RoIAlign(output_size=(14, 14), spatial_scale=0.125, sampling_ratio=0, pool_mode=avg, aligned=True, use_torchvision=False)
+        (2): RoIAlign(output_size=(14, 14), spatial_scale=0.0625, sampling_ratio=0, pool_mode=avg, aligned=True, use_torchvision=False)
+        (3): RoIAlign(output_size=(14, 14), spatial_scale=0.03125, sampling_ratio=0, pool_mode=avg, aligned=True, use_torchvision=False)
+      )
+    )
+    (mask_head): FCNMaskHead(
+      (loss_mask): CrossEntropyLoss(avg_non_ignore=False)
+      (convs): ModuleList(
+        (0): ConvModule(
+          (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): SyncBatchNorm(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True, group_size=8,stats_mode=default)
+          (activate): ReLU(inplace=True)
+        )
+        (1): ConvModule(
+          (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): SyncBatchNorm(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True, group_size=8,stats_mode=default)
+          (activate): ReLU(inplace=True)
+        )
+        (2): ConvModule(
+          (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): SyncBatchNorm(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True, group_size=8,stats_mode=default)
+          (activate): ReLU(inplace=True)
+        )
+        (3): ConvModule(
+          (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn): SyncBatchNorm(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True, group_size=8,stats_mode=default)
+          (activate): ReLU(inplace=True)
+        )
+      )
+      (upsample): ConvTranspose2d(256, 256, kernel_size=(2, 2), stride=(2, 2))
+      (conv_logits): Conv2d(256, 80, kernel_size=(1, 1), stride=(1, 1))
+      (relu): ReLU(inplace=True)
+    )
+  )
+)
+loading annotations into memory...
+loading annotations into memory...
+loading annotations into memory...
+Done (t=18.54s)
+creating index...
+Done (t=18.54s)
+creating index...
+Done (t=18.55s)
+creating index...
+Done (t=18.62s)
+creating index...
+Done (t=18.64s)
+creating index...
+Done (t=18.65s)
+creating index...
+Done (t=18.63s)
+creating index...
+Done (t=18.63s)
+creating index...
+index created!
+index created!
+index created!
+index created!
+index created!
+index created!
+index created!
+index created!
+paramwise_options --                                     backbone.cls_token: weight_decay=0.0
+paramwise_options --                                     backbone.cls_token: lr=9.688901040699993e-07
+paramwise_options --                                     backbone.pos_embed: weight_decay=0.0
+paramwise_options --                                     backbone.pos_embed: lr=9.688901040699993e-07
+paramwise_options --                                     backbone.patch_embed.proj.weight: lr=9.688901040699993e-07
+paramwise_options --                                     backbone.patch_embed.proj.bias: weight_decay=0.0
+paramwise_options --                                     backbone.patch_embed.proj.bias: lr=9.688901040699993e-07
+paramwise_options --                                     backbone.window_rel_pos_bias.relative_position_bias_table: weight_decay=0.0
+paramwise_options --                                     backbone.global_rel_pos_bias.relative_position_bias_table: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.0.norm1.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.0.norm1.weight: lr=1.384128720099999e-06
+paramwise_options --                                     backbone.blocks.0.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.0.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.0.norm1.bias: lr=1.384128720099999e-06
+paramwise_options --                                     backbone.blocks.0.attn.qkv.weight: lr=1.384128720099999e-06
+paramwise_options --                                     backbone.blocks.0.attn.qkv.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.0.attn.qkv.bias: lr=1.384128720099999e-06
+paramwise_options --                                     backbone.blocks.0.attn.proj.weight: lr=1.384128720099999e-06
+paramwise_options --                                     backbone.blocks.0.attn.proj.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.0.attn.proj.bias: lr=1.384128720099999e-06
+paramwise_options --                                     backbone.blocks.0.norm2.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.0.norm2.weight: lr=1.384128720099999e-06
+paramwise_options --                                     backbone.blocks.0.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.0.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.0.norm2.bias: lr=1.384128720099999e-06
+paramwise_options --                                     backbone.blocks.0.mlp.fc1.weight: lr=1.384128720099999e-06
+paramwise_options --                                     backbone.blocks.0.mlp.fc1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.0.mlp.fc1.bias: lr=1.384128720099999e-06
+paramwise_options --                                     backbone.blocks.0.mlp.fc2.weight: lr=1.384128720099999e-06
+paramwise_options --                                     backbone.blocks.0.mlp.fc2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.0.mlp.fc2.bias: lr=1.384128720099999e-06
+paramwise_options --                                     backbone.blocks.1.norm1.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.1.norm1.weight: lr=1.977326742999999e-06
+paramwise_options --                                     backbone.blocks.1.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.1.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.1.norm1.bias: lr=1.977326742999999e-06
+paramwise_options --                                     backbone.blocks.1.attn.qkv.weight: lr=1.977326742999999e-06
+paramwise_options --                                     backbone.blocks.1.attn.qkv.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.1.attn.qkv.bias: lr=1.977326742999999e-06
+paramwise_options --                                     backbone.blocks.1.attn.proj.weight: lr=1.977326742999999e-06
+paramwise_options --                                     backbone.blocks.1.attn.proj.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.1.attn.proj.bias: lr=1.977326742999999e-06
+paramwise_options --                                     backbone.blocks.1.norm2.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.1.norm2.weight: lr=1.977326742999999e-06
+paramwise_options --                                     backbone.blocks.1.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.1.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.1.norm2.bias: lr=1.977326742999999e-06
+paramwise_options --                                     backbone.blocks.1.mlp.fc1.weight: lr=1.977326742999999e-06
+paramwise_options --                                     backbone.blocks.1.mlp.fc1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.1.mlp.fc1.bias: lr=1.977326742999999e-06
+paramwise_options --                                     backbone.blocks.1.mlp.fc2.weight: lr=1.977326742999999e-06
+paramwise_options --                                     backbone.blocks.1.mlp.fc2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.1.mlp.fc2.bias: lr=1.977326742999999e-06
+paramwise_options --                                     backbone.blocks.2.norm1.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.2.norm1.weight: lr=2.8247524899999986e-06
+paramwise_options --                                     backbone.blocks.2.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.2.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.2.norm1.bias: lr=2.8247524899999986e-06
+paramwise_options --                                     backbone.blocks.2.attn.qkv.weight: lr=2.8247524899999986e-06
+paramwise_options --                                     backbone.blocks.2.attn.qkv.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.2.attn.qkv.bias: lr=2.8247524899999986e-06
+paramwise_options --                                     backbone.blocks.2.attn.proj.weight: lr=2.8247524899999986e-06
+paramwise_options --                                     backbone.blocks.2.attn.proj.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.2.attn.proj.bias: lr=2.8247524899999986e-06
+paramwise_options --                                     backbone.blocks.2.norm2.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.2.norm2.weight: lr=2.8247524899999986e-06
+paramwise_options --                                     backbone.blocks.2.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.2.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.2.norm2.bias: lr=2.8247524899999986e-06
+paramwise_options --                                     backbone.blocks.2.mlp.fc1.weight: lr=2.8247524899999986e-06
+paramwise_options --                                     backbone.blocks.2.mlp.fc1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.2.mlp.fc1.bias: lr=2.8247524899999986e-06
+paramwise_options --                                     backbone.blocks.2.mlp.fc2.weight: lr=2.8247524899999986e-06
+paramwise_options --                                     backbone.blocks.2.mlp.fc2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.2.mlp.fc2.bias: lr=2.8247524899999986e-06
+paramwise_options --                                     backbone.blocks.3.norm1.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.3.norm1.weight: lr=4.035360699999998e-06
+paramwise_options --                                     backbone.blocks.3.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.3.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.3.norm1.bias: lr=4.035360699999998e-06
+paramwise_options --                                     backbone.blocks.3.attn.qkv.weight: lr=4.035360699999998e-06
+paramwise_options --                                     backbone.blocks.3.attn.qkv.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.3.attn.qkv.bias: lr=4.035360699999998e-06
+paramwise_options --                                     backbone.blocks.3.attn.proj.weight: lr=4.035360699999998e-06
+paramwise_options --                                     backbone.blocks.3.attn.proj.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.3.attn.proj.bias: lr=4.035360699999998e-06
+paramwise_options --                                     backbone.blocks.3.norm2.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.3.norm2.weight: lr=4.035360699999998e-06
+paramwise_options --                                     backbone.blocks.3.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.3.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.3.norm2.bias: lr=4.035360699999998e-06
+paramwise_options --                                     backbone.blocks.3.mlp.fc1.weight: lr=4.035360699999998e-06
+paramwise_options --                                     backbone.blocks.3.mlp.fc1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.3.mlp.fc1.bias: lr=4.035360699999998e-06
+paramwise_options --                                     backbone.blocks.3.mlp.fc2.weight: lr=4.035360699999998e-06
+paramwise_options --                                     backbone.blocks.3.mlp.fc2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.3.mlp.fc2.bias: lr=4.035360699999998e-06
+paramwise_options --                                     backbone.blocks.4.norm1.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.4.norm1.weight: lr=5.764800999999997e-06
+paramwise_options --                                     backbone.blocks.4.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.4.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.4.norm1.bias: lr=5.764800999999997e-06
+paramwise_options --                                     backbone.blocks.4.attn.qkv.weight: lr=5.764800999999997e-06
+paramwise_options --                                     backbone.blocks.4.attn.qkv.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.4.attn.qkv.bias: lr=5.764800999999997e-06
+paramwise_options --                                     backbone.blocks.4.attn.proj.weight: lr=5.764800999999997e-06
+paramwise_options --                                     backbone.blocks.4.attn.proj.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.4.attn.proj.bias: lr=5.764800999999997e-06
+paramwise_options --                                     backbone.blocks.4.norm2.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.4.norm2.weight: lr=5.764800999999997e-06
+paramwise_options --                                     backbone.blocks.4.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.4.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.4.norm2.bias: lr=5.764800999999997e-06
+paramwise_options --                                     backbone.blocks.4.mlp.fc1.weight: lr=5.764800999999997e-06
+paramwise_options --                                     backbone.blocks.4.mlp.fc1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.4.mlp.fc1.bias: lr=5.764800999999997e-06
+paramwise_options --                                     backbone.blocks.4.mlp.fc2.weight: lr=5.764800999999997e-06
+paramwise_options --                                     backbone.blocks.4.mlp.fc2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.4.mlp.fc2.bias: lr=5.764800999999997e-06
+paramwise_options --                                     backbone.blocks.5.norm1.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.5.norm1.weight: lr=8.235429999999996e-06
+paramwise_options --                                     backbone.blocks.5.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.5.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.5.norm1.bias: lr=8.235429999999996e-06
+paramwise_options --                                     backbone.blocks.5.attn.qkv.weight: lr=8.235429999999996e-06
+paramwise_options --                                     backbone.blocks.5.attn.qkv.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.5.attn.qkv.bias: lr=8.235429999999996e-06
+paramwise_options --                                     backbone.blocks.5.attn.proj.weight: lr=8.235429999999996e-06
+paramwise_options --                                     backbone.blocks.5.attn.proj.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.5.attn.proj.bias: lr=8.235429999999996e-06
+paramwise_options --                                     backbone.blocks.5.norm2.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.5.norm2.weight: lr=8.235429999999996e-06
+paramwise_options --                                     backbone.blocks.5.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.5.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.5.norm2.bias: lr=8.235429999999996e-06
+paramwise_options --                                     backbone.blocks.5.mlp.fc1.weight: lr=8.235429999999996e-06
+paramwise_options --                                     backbone.blocks.5.mlp.fc1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.5.mlp.fc1.bias: lr=8.235429999999996e-06
+paramwise_options --                                     backbone.blocks.5.mlp.fc2.weight: lr=8.235429999999996e-06
+paramwise_options --                                     backbone.blocks.5.mlp.fc2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.5.mlp.fc2.bias: lr=8.235429999999996e-06
+paramwise_options --                                     backbone.blocks.6.norm1.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.6.norm1.weight: lr=1.1764899999999996e-05
+paramwise_options --                                     backbone.blocks.6.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.6.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.6.norm1.bias: lr=1.1764899999999996e-05
+paramwise_options --                                     backbone.blocks.6.attn.qkv.weight: lr=1.1764899999999996e-05
+paramwise_options --                                     backbone.blocks.6.attn.qkv.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.6.attn.qkv.bias: lr=1.1764899999999996e-05
+paramwise_options --                                     backbone.blocks.6.attn.proj.weight: lr=1.1764899999999996e-05
+paramwise_options --                                     backbone.blocks.6.attn.proj.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.6.attn.proj.bias: lr=1.1764899999999996e-05
+paramwise_options --                                     backbone.blocks.6.norm2.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.6.norm2.weight: lr=1.1764899999999996e-05
+paramwise_options --                                     backbone.blocks.6.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.6.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.6.norm2.bias: lr=1.1764899999999996e-05
+paramwise_options --                                     backbone.blocks.6.mlp.fc1.weight: lr=1.1764899999999996e-05
+paramwise_options --                                     backbone.blocks.6.mlp.fc1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.6.mlp.fc1.bias: lr=1.1764899999999996e-05
+paramwise_options --                                     backbone.blocks.6.mlp.fc2.weight: lr=1.1764899999999996e-05
+paramwise_options --                                     backbone.blocks.6.mlp.fc2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.6.mlp.fc2.bias: lr=1.1764899999999996e-05
+paramwise_options --                                     backbone.blocks.7.norm1.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.7.norm1.weight: lr=1.6806999999999993e-05
+paramwise_options --                                     backbone.blocks.7.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.7.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.7.norm1.bias: lr=1.6806999999999993e-05
+paramwise_options --                                     backbone.blocks.7.attn.qkv.weight: lr=1.6806999999999993e-05
+paramwise_options --                                     backbone.blocks.7.attn.qkv.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.7.attn.qkv.bias: lr=1.6806999999999993e-05
+paramwise_options --                                     backbone.blocks.7.attn.proj.weight: lr=1.6806999999999993e-05
+paramwise_options --                                     backbone.blocks.7.attn.proj.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.7.attn.proj.bias: lr=1.6806999999999993e-05
+paramwise_options --                                     backbone.blocks.7.norm2.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.7.norm2.weight: lr=1.6806999999999993e-05
+paramwise_options --                                     backbone.blocks.7.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.7.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.7.norm2.bias: lr=1.6806999999999993e-05
+paramwise_options --                                     backbone.blocks.7.mlp.fc1.weight: lr=1.6806999999999993e-05
+paramwise_options --                                     backbone.blocks.7.mlp.fc1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.7.mlp.fc1.bias: lr=1.6806999999999993e-05
+paramwise_options --                                     backbone.blocks.7.mlp.fc2.weight: lr=1.6806999999999993e-05
+paramwise_options --                                     backbone.blocks.7.mlp.fc2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.7.mlp.fc2.bias: lr=1.6806999999999993e-05
+paramwise_options --                                     backbone.blocks.8.norm1.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.8.norm1.weight: lr=2.4009999999999995e-05
+paramwise_options --                                     backbone.blocks.8.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.8.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.8.norm1.bias: lr=2.4009999999999995e-05
+paramwise_options --                                     backbone.blocks.8.attn.qkv.weight: lr=2.4009999999999995e-05
+paramwise_options --                                     backbone.blocks.8.attn.qkv.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.8.attn.qkv.bias: lr=2.4009999999999995e-05
+paramwise_options --                                     backbone.blocks.8.attn.proj.weight: lr=2.4009999999999995e-05
+paramwise_options --                                     backbone.blocks.8.attn.proj.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.8.attn.proj.bias: lr=2.4009999999999995e-05
+paramwise_options --                                     backbone.blocks.8.norm2.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.8.norm2.weight: lr=2.4009999999999995e-05
+paramwise_options --                                     backbone.blocks.8.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.8.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.8.norm2.bias: lr=2.4009999999999995e-05
+paramwise_options --                                     backbone.blocks.8.mlp.fc1.weight: lr=2.4009999999999995e-05
+paramwise_options --                                     backbone.blocks.8.mlp.fc1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.8.mlp.fc1.bias: lr=2.4009999999999995e-05
+paramwise_options --                                     backbone.blocks.8.mlp.fc2.weight: lr=2.4009999999999995e-05
+paramwise_options --                                     backbone.blocks.8.mlp.fc2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.8.mlp.fc2.bias: lr=2.4009999999999995e-05
+paramwise_options --                                     backbone.blocks.9.norm1.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.9.norm1.weight: lr=3.4299999999999993e-05
+paramwise_options --                                     backbone.blocks.9.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.9.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.9.norm1.bias: lr=3.4299999999999993e-05
+paramwise_options --                                     backbone.blocks.9.attn.qkv.weight: lr=3.4299999999999993e-05
+paramwise_options --                                     backbone.blocks.9.attn.qkv.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.9.attn.qkv.bias: lr=3.4299999999999993e-05
+paramwise_options --                                     backbone.blocks.9.attn.proj.weight: lr=3.4299999999999993e-05
+paramwise_options --                                     backbone.blocks.9.attn.proj.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.9.attn.proj.bias: lr=3.4299999999999993e-05
+paramwise_options --                                     backbone.blocks.9.norm2.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.9.norm2.weight: lr=3.4299999999999993e-05
+paramwise_options --                                     backbone.blocks.9.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.9.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.9.norm2.bias: lr=3.4299999999999993e-05
+paramwise_options --                                     backbone.blocks.9.mlp.fc1.weight: lr=3.4299999999999993e-05
+paramwise_options --                                     backbone.blocks.9.mlp.fc1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.9.mlp.fc1.bias: lr=3.4299999999999993e-05
+paramwise_options --                                     backbone.blocks.9.mlp.fc2.weight: lr=3.4299999999999993e-05
+paramwise_options --                                     backbone.blocks.9.mlp.fc2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.9.mlp.fc2.bias: lr=3.4299999999999993e-05
+paramwise_options --                                     backbone.blocks.10.norm1.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.10.norm1.weight: lr=4.9e-05
+paramwise_options --                                     backbone.blocks.10.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.10.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.10.norm1.bias: lr=4.9e-05
+paramwise_options --                                     backbone.blocks.10.attn.qkv.weight: lr=4.9e-05
+paramwise_options --                                     backbone.blocks.10.attn.qkv.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.10.attn.qkv.bias: lr=4.9e-05
+paramwise_options --                                     backbone.blocks.10.attn.proj.weight: lr=4.9e-05
+paramwise_options --                                     backbone.blocks.10.attn.proj.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.10.attn.proj.bias: lr=4.9e-05
+paramwise_options --                                     backbone.blocks.10.norm2.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.10.norm2.weight: lr=4.9e-05
+paramwise_options --                                     backbone.blocks.10.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.10.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.10.norm2.bias: lr=4.9e-05
+paramwise_options --                                     backbone.blocks.10.mlp.fc1.weight: lr=4.9e-05
+paramwise_options --                                     backbone.blocks.10.mlp.fc1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.10.mlp.fc1.bias: lr=4.9e-05
+paramwise_options --                                     backbone.blocks.10.mlp.fc2.weight: lr=4.9e-05
+paramwise_options --                                     backbone.blocks.10.mlp.fc2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.10.mlp.fc2.bias: lr=4.9e-05
+paramwise_options --                                     backbone.blocks.11.norm1.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.11.norm1.weight: lr=7e-05
+paramwise_options --                                     backbone.blocks.11.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.11.norm1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.11.norm1.bias: lr=7e-05
+paramwise_options --                                     backbone.blocks.11.attn.qkv.weight: lr=7e-05
+paramwise_options --                                     backbone.blocks.11.attn.qkv.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.11.attn.qkv.bias: lr=7e-05
+paramwise_options --                                     backbone.blocks.11.attn.proj.weight: lr=7e-05
+paramwise_options --                                     backbone.blocks.11.attn.proj.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.11.attn.proj.bias: lr=7e-05
+paramwise_options --                                     backbone.blocks.11.norm2.weight: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.11.norm2.weight: lr=7e-05
+paramwise_options --                                     backbone.blocks.11.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.11.norm2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.11.norm2.bias: lr=7e-05
+paramwise_options --                                     backbone.blocks.11.mlp.fc1.weight: lr=7e-05
+paramwise_options --                                     backbone.blocks.11.mlp.fc1.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.11.mlp.fc1.bias: lr=7e-05
+paramwise_options --                                     backbone.blocks.11.mlp.fc2.weight: lr=7e-05
+paramwise_options --                                     backbone.blocks.11.mlp.fc2.bias: weight_decay=0.0
+paramwise_options --                                     backbone.blocks.11.mlp.fc2.bias: lr=7e-05
+paramwise_options --                                     backbone.norm.weight: weight_decay=0.0
+paramwise_options --                                     backbone.norm.bias: weight_decay=0.0
+paramwise_options --                                     backbone.norm.bias: weight_decay=0.0
+paramwise_options --                                     neck.top_downs.0.0.bias: weight_decay=0.0
+paramwise_options --                                     neck.top_downs.0.1.bias: weight_decay=0.0
+paramwise_options --                                     neck.top_downs.0.3.bias: weight_decay=0.0
+paramwise_options --                                     neck.top_downs.1.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.0.0.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.0.1.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.0.2.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.0.3.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.1.0.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.1.1.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.1.2.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.1.3.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.2.0.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.2.1.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.2.2.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.2.3.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.3.0.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.3.1.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.3.2.bias: weight_decay=0.0
+paramwise_options --                                     neck.sfp_outs.3.3.bias: weight_decay=0.0
+paramwise_options --                                     rpn_head.rpn_conv.0.conv.bias: weight_decay=0.0
+paramwise_options --                                     rpn_head.rpn_conv.1.conv.bias: weight_decay=0.0
+paramwise_options --                                     rpn_head.rpn_cls.bias: weight_decay=0.0
+paramwise_options --                                     rpn_head.rpn_reg.bias: weight_decay=0.0
+paramwise_options --                                     roi_head.bbox_head.fc_cls.bias: weight_decay=0.0
+paramwise_options --                                     roi_head.bbox_head.fc_reg.bias: weight_decay=0.0
+paramwise_options --                                     roi_head.bbox_head.shared_convs.0.bn.bias: weight_decay=0.0
+paramwise_options --                                     roi_head.bbox_head.shared_convs.1.bn.bias: weight_decay=0.0
+paramwise_options --                                     roi_head.bbox_head.shared_convs.2.bn.bias: weight_decay=0.0
+paramwise_options --                                     roi_head.bbox_head.shared_convs.3.bn.bias: weight_decay=0.0
+paramwise_options --                                     roi_head.bbox_head.shared_fcs.0.bias: weight_decay=0.0
+paramwise_options --                                     roi_head.mask_head.convs.0.bn.bias: weight_decay=0.0
+paramwise_options --                                     roi_head.mask_head.convs.1.bn.bias: weight_decay=0.0
+paramwise_options --                                     roi_head.mask_head.convs.2.bn.bias: weight_decay=0.0
+paramwise_options --                                     roi_head.mask_head.convs.3.bn.bias: weight_decay=0.0
+paramwise_options --                                     roi_head.mask_head.upsample.bias: weight_decay=0.0
+paramwise_options --                                     roi_head.mask_head.conv_logits.bias: weight_decay=0.0
+loading annotations into memory...
+loading annotations into memory...
+loading annotations into memory...
+loading annotations into memory...
+loading annotations into memory...
+loading annotations into memory...
+loading annotations into memory...
+loading annotations into memory...
+Done (t=0.52s)
+creating index...
+Done (t=0.52s)
+creating index...
+Done (t=0.53s)
+creating index...
+Done (t=0.52s)
+creating index...
+Done (t=0.52s)
+creating index...
+Done (t=0.53s)
+creating index...
+Done (t=0.53s)
+creating index...
+Done (t=0.53s)
+creating index...
+index created!
+index created!
+index created!
+index created!
+index created!
+index created!
+index created!
+index created!
+2022-04-15 11:33:59,954 - mmdet - INFO - Start running, host: yunji.cjy@j38g08156.eu95sqa, work_dir: /home/yunji.cjy/codebase/mmdetection/work_dirs/vitdet_sfp_100e_fp16_coco
+2022-04-15 11:33:59,954 - mmdet - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(ABOVE_NORMAL) GradientCumulativeFp16OptimizerHook
+(NORMAL      ) CheckpointHook                     
+(LOW         ) DistEvalHook                       
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(NORMAL      ) NumClassCheckHook                  
+(NORMAL      ) DistSamplerSeedHook                
+(LOW         ) IterTimerHook                      
+(LOW         ) DistEvalHook                       
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) StepLrUpdaterHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) DistEvalHook                       
+ -------------------- 
+after_train_iter:
+(ABOVE_NORMAL) GradientCumulativeFp16OptimizerHook
+(NORMAL      ) CheckpointHook                     
+(LOW         ) IterTimerHook                      
+(LOW         ) DistEvalHook                       
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(LOW         ) DistEvalHook                       
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_epoch:
+(NORMAL      ) NumClassCheckHook                  
+(NORMAL      ) DistSamplerSeedHook                
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+2022-04-15 11:33:59,954 - mmdet - INFO - workflow: [('train', 1)], max: 25 epochs
+2022-04-15 11:33:59,956 - mmdet - INFO - Checkpoints will be saved to /home/yunji.cjy/codebase/mmdetection/work_dirs/vitdet_sfp_100e_fp16_coco by HardDiskBackend.
