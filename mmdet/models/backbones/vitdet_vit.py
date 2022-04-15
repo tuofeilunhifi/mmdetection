@@ -6,7 +6,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torchvision.transforms import Resize
 from mmcv.cnn import build_norm_layer
 from mmcv.cnn.utils.weight_init import trunc_normal_
 from mmcv.runner.base_module import BaseModule, ModuleList
@@ -18,18 +17,19 @@ from ..builder import BACKBONES
 class PatchEmbed(nn.Module):
     """ 2D Image to Patch Embedding
     """
-    def __init__(self, img_size=224, patch_size=16, window_size=16, in_chans=3, embed_dim=768, norm_layer=None, flatten=True):
+    def __init__(self, img_size=224, patch_size=16, window_size=16, in_chans=3, embed_dim=768, norm_layer=None, flatten=True, interpolate_mode='bicubic'):
         super().__init__()
         img_size = to_2tuple(img_size)
         patch_size = to_2tuple(patch_size)
         self.img_size = img_size
         self.patch_size = patch_size
         self.grid_size = [img_size[0] // patch_size[0], img_size[1] // patch_size[1]]
+        self.interpolate_mode = interpolate_mode
 
-        self.modify_size = None
+        self.modify_size = False
         if self.grid_size[0] % window_size:
             self.grid_size = [window_size * (self.grid_size[0] // window_size), window_size * (self.grid_size[1] // window_size)]
-            self.modify_size = Resize(self.grid_size)
+            self.modify_size = True
 
         self.num_patches = self.grid_size[0] * self.grid_size[1]
         self.flatten = flatten
@@ -43,8 +43,8 @@ class PatchEmbed(nn.Module):
             f"Input image size ({H}*{W}) doesn't " \
             f'match model ({self.img_size[0]}*{self.img_size[1]}).'
         x = self.proj(x)
-        if self.modify_size is not None:
-            x = self.modify_size(x)
+        if self.modify_size:
+            x = F.interpolate(x, size=self.grid_size, align_corners=False, mode=self.interpolate_mode)
         if self.flatten:
             x = x.flatten(2).transpose(1, 2)  # BCHW -> BNC
         x = self.norm(x)
@@ -316,9 +316,6 @@ class ViTDetVisionTransformer(BaseModule):
 
         self.out_grid_size = [img_size // patch_size, img_size // patch_size]
         self.grid_size = self.patch_embed.grid_size
-        
-        if self.out_grid_size != self.grid_size:
-            self.out_resize = Resize(self.out_grid_size)
 
         self.window_size = window_size
         self.patch_size = patch_size
@@ -526,7 +523,7 @@ class ViTDetVisionTransformer(BaseModule):
                 out = out.reshape(B, self.grid_size[0], self.grid_size[1], C).permute(0, 3, 1, 2).contiguous()
 
                 if self.out_grid_size != self.grid_size:
-                    out = self.out_resize(out)
+                    out = F.interpolate(out, size=self.out_grid_size, align_corners=False, mode=self.interpolate_mode)
 
                 outs.append(out)
 
