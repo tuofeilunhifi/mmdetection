@@ -95,6 +95,9 @@ class DropPath(nn.Module):
     def forward(self, x):
         return drop_path(x, self.drop_prob, self.training, self.scale_by_keep)
 
+    def extra_repr(self) -> str:
+        return 'p={}'.format(self.drop_prob)
+
 class Attention(nn.Module):
     def __init__(self, dim, num_heads=8, qkv_bias=False, attn_drop=0., proj_drop=0.):
         super().__init__()
@@ -492,10 +495,10 @@ class ViTDetVisionTransformer(BaseModule):
             # local self-attention & global self-attention
             if (self.blocks==12 and (i+1) % 3 == 0) or (self.blocks==24 and (i+1) % 6 == 0):
                 x  = self.window_reverse(x, self.grid_size)
-                x = layer(x, self.global_rel_pos_bias())
+                x = layer(x, self.global_rel_pos_bias() if self.global_rel_pos_bias is not None else None)
                 x = self.window_partition(x, self.grid_size)
             else:
-                x = layer(x, self.window_rel_pos_bias())
+                x = layer(x, self.window_rel_pos_bias() if self.window_rel_pos_bias is not None else None)
 
             if i in self.out_indices:
                 # window_reverse
