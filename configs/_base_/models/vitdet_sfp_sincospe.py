@@ -2,9 +2,9 @@
 # # Use MMSyncBN that handles empty tensor in head. It can be changed to
 # # SyncBN after https://github.com/pytorch/pytorch/issues/36530 is fixed
 # # Requires MMCV-full after  https://github.com/open-mmlab/mmcv/pull/1205.
-# norm_cfg = dict(type='MMSyncBN', requires_grad=True)
+head_norm_cfg = dict(type='MMSyncBN', requires_grad=True)
 
-norm_cfg = dict(type='GN', num_groups=1, requires_grad=True)
+neck_norm_cfg = dict(type='GN', num_groups=1, requires_grad=True)
 
 model = dict(
     type='MaskRCNN',
@@ -24,13 +24,13 @@ model = dict(
         type='SFP',
         in_channels=768,
         out_channels=256,
-        norm_cfg=norm_cfg),
+        norm_cfg=neck_norm_cfg),
     rpn_head=dict(
         type='RPNHead',
         in_channels=256,
         feat_channels=256,
         num_convs=2,
-        norm_cfg=norm_cfg,
+        norm_cfg=None,
         anchor_generator=dict(
             type='AnchorGenerator',
             scales=[8],
@@ -53,7 +53,7 @@ model = dict(
         bbox_head=dict(
             type='Shared4Conv1FCBBoxHead',
             conv_out_channels=256,
-            norm_cfg=norm_cfg,
+            norm_cfg=head_norm_cfg,
             in_channels=256,
             fc_out_channels=1024,
             roi_feat_size=7,
@@ -73,7 +73,7 @@ model = dict(
             featmap_strides=[4, 8, 16, 32]),
         mask_head=dict(
             type='FCNMaskHead',
-            norm_cfg=norm_cfg,
+            norm_cfg=head_norm_cfg,
             num_convs=4,
             in_channels=256,
             conv_out_channels=256,
