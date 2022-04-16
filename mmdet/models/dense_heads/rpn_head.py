@@ -28,6 +28,7 @@ class RPNHead(AnchorHead):
                  norm_cfg=None,
                  **kwargs):
         self.num_convs = num_convs
+        self.norm_cfg = norm_cfg
         super(RPNHead, self).__init__(
             1, in_channels, init_cfg=init_cfg, **kwargs)
 
@@ -50,7 +51,7 @@ class RPNHead(AnchorHead):
                         3,
                         padding=1,
                         inplace=False,
-                        norm_cfg=norm_cfg))
+                        norm_cfg=self.norm_cfg))
             self.rpn_conv = nn.Sequential(*rpn_convs)
         else:
             self.rpn_conv = nn.Conv2d(
