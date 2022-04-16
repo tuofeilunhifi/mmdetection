@@ -25,6 +25,7 @@ class RPNHead(AnchorHead):
                  in_channels,
                  init_cfg=dict(type='Normal', layer='Conv2d', std=0.01),
                  num_convs=1,
+                 norm_cfg=None,
                  **kwargs):
         self.num_convs = num_convs
         super(RPNHead, self).__init__(
@@ -48,7 +49,8 @@ class RPNHead(AnchorHead):
                         self.feat_channels,
                         3,
                         padding=1,
-                        inplace=False))
+                        inplace=False,
+                        norm_cfg=norm_cfg))
             self.rpn_conv = nn.Sequential(*rpn_convs)
         else:
             self.rpn_conv = nn.Conv2d(

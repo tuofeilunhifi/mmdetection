@@ -17,9 +17,7 @@ class SFP(BaseModule):
     Args:
         in_channels (list[int]): Number of input channels per scale.
         out_channels (int): Number of output channels (used at each scale).
-        conv_cfg (dict): Config dict for convolution layer. Default: None.
         norm_cfg (dict): Config dict for normalization layer. Default: None.
-        act_cfg (dict): Config dict for activation layer in ConvModule.
             Default: None.
         init_cfg (dict or list[dict], optional): Initialization config dict.
 
@@ -42,9 +40,7 @@ class SFP(BaseModule):
     def __init__(self,
                  in_channels,
                  out_channels,
-                 conv_cfg=None,
-                 norm_cfg=None,
-                 act_cfg=None,
+                 norm_cfg=dict(type='GN', num_groups=1, requires_grad=True),
                  init_cfg=[
                      dict(type='Xavier', layer=['Conv2d', 'ConvTranspose2d'], distribution='uniform'), 
                      dict(type='Constant', layer=['GroupNorm'], val=1)
@@ -63,7 +59,7 @@ class SFP(BaseModule):
             if i == 0:
                 top_down = nn.Sequential(
                     nn.ConvTranspose2d(in_channels, in_channels, 2, stride=2, padding=0),
-                    nn.GroupNorm(1, in_channels, eps=1e-6),
+                    build_norm_layer(norm_cfg, in_channels)[1],
                     nn.GELU(),
                     nn.ConvTranspose2d(in_channels, in_channels, 2, stride=2, padding=0)
                 )
@@ -76,9 +72,9 @@ class SFP(BaseModule):
 
             sfp_out = nn.Sequential(
                 nn.Conv2d(in_channels, out_channels, 1),
-                nn.GroupNorm(1, out_channels, eps=1e-6),
+                build_norm_layer(norm_cfg, out_channels)[1],
                 nn.Conv2d(out_channels, out_channels, 3, padding=1),
-                nn.GroupNorm(1, out_channels, eps=1e-6)
+                build_norm_layer(norm_cfg, out_channels)[1]
             )
 
             self.top_downs.append(top_down)
