@@ -308,6 +308,7 @@ class ViTDetVisionTransformer(BaseModule):
         self.num_layers = self.arch_settings['num_layers']
         self.num_heads = self.arch_settings['num_heads']
         norm_layer = partial(nn.LayerNorm, eps=1e-6)
+        act_layer = nn.GELU
 
         # Set patch embedding
         self.patch_embed = PatchEmbed(
@@ -373,7 +374,7 @@ class ViTDetVisionTransformer(BaseModule):
                 attn_drop=0.,
                 drop_path=dpr[i],
                 norm_layer=norm_layer,
-                act_layer=nn.GELU)
+                act_layer=act_layer)
             self.blocks.append(Block(**_layer_cfg))
 
         self.final_norm = final_norm
