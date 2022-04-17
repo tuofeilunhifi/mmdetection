@@ -75,10 +75,10 @@ class SFP(BaseModule):
             sfp_out = nn.Sequential(
                 nn.Conv2d(in_channels, out_channels, 1),
                 build_norm_layer(norm_cfg, out_channels)[1],
-                nn.ReLU(),
+                nn.ReLU(inplace=False),
                 nn.Conv2d(out_channels, out_channels, 3, padding=1),
                 build_norm_layer(norm_cfg, out_channels)[1],
-                nn.ReLU(),
+                nn.ReLU(inplace=False),
             )
 
             self.top_downs.append(top_down)
