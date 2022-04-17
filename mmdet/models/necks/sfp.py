@@ -41,6 +41,7 @@ class SFP(BaseModule):
                  in_channels,
                  out_channels,
                  norm_cfg=dict(type='GN', num_groups=1, requires_grad=True),
+                 num_outs=-1,
                  init_cfg=[
                      dict(type='Xavier', layer=['Conv2d', 'ConvTranspose2d'], distribution='uniform'), 
                      dict(type='Constant', layer=['GroupNorm'], val=1)
@@ -50,6 +51,7 @@ class SFP(BaseModule):
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.num_level = 4
+        self.num_outs = num_outs
         self.fp16_enabled = False
 
         self.top_downs = nn.ModuleList()
@@ -85,7 +87,7 @@ class SFP(BaseModule):
         """Forward function."""
         assert len(inputs) == 1
 
-        # build outputs
+        # part 1: build outputs
         outs = []
         for i in range(self.num_level):
 
@@ -93,5 +95,12 @@ class SFP(BaseModule):
             x = self.sfp_outs[i](x)
 
             outs.append(x)
+
+        # part 2: add extra levels
+        if self.num_outs > len(outs):
+            # use max pool to get more levels on top of outputs
+            # (e.g., Faster R-CNN, Mask R-CNN)
+            for i in range(self.num_outs - len(outs)):
+                outs.append(F.max_pool2d(outs[-1], 1, stride=2))
 
         return tuple(outs)
