@@ -277,7 +277,6 @@ class ViTDetVisionTransformer(BaseModule):
                  img_size=224,
                  patch_size=16,
                  window_size=16,
-                 interval=3,
                  out_indices=-1,
                  drop_rate=0.,
                  drop_path_rate=0.,
@@ -309,6 +308,7 @@ class ViTDetVisionTransformer(BaseModule):
         self.embed_dims = self.arch_settings['embed_dims']
         self.num_layers = self.arch_settings['num_layers']
         self.num_heads = self.arch_settings['num_heads']
+        self.interval = len(self.num_layers) // 4
         norm_layer = partial(nn.LayerNorm, eps=1e-6)
         act_layer = nn.GELU
 
@@ -345,7 +345,6 @@ class ViTDetVisionTransformer(BaseModule):
                             self.embed_dims)) 
 
         # set rel_pos_bias
-        self.interval = interval
         self.use_share_rel_pos_bias = use_share_rel_pos_bias
         if use_share_rel_pos_bias:
             self.window_rel_pos_bias = RelativePositionBias(window_size=[self.window_size, self.window_size], num_heads=self.num_heads)
