@@ -19,7 +19,7 @@ model = dict(
         final_norm=True,
         sincos_pos_embed=False,
         use_rel_pos_bias=True,
-        use_share_rel_pos_bias=False,
+        #use_share_rel_pos_bias=True,
         init_cfg=dict(type='Pretrained', checkpoint='/home/yunji.cjy/pretrain/warpper_mae_vit-base-p16-1600e.pth')),
     neck=dict(
         type='SFP',

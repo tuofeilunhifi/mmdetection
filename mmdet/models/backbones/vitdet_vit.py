@@ -132,7 +132,7 @@ class Attention(nn.Module):
 class Block(nn.Module):
 
     def __init__(self, dim, num_heads, mlp_ratio=4., qkv_bias=False, drop=0., attn_drop=0.,
-                 drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm, window_size=None, use_rel_pos_bias=False):
+                 drop_path=0., act_layer=nn.GELU, norm_layer=nn.LayerNorm):
         super().__init__()
         self.norm1 = norm_layer(dim)
         self.attn = Attention(dim, num_heads=num_heads, qkv_bias=qkv_bias, attn_drop=attn_drop, proj_drop=drop)
@@ -142,15 +142,8 @@ class Block(nn.Module):
         mlp_hidden_dim = int(dim * mlp_ratio)
         self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
 
-        self.use_rel_pos_bias = use_rel_pos_bias
-        if use_rel_pos_bias:
-            self.rel_pos_bias = RelativePositionBias(window_size=window_size, num_heads=num_heads)
-
-    def forward(self, x, share_rel_pos_bias=None):
-        if self.use_rel_pos_bias is not None:
-            x = x + self.drop_path(self.attn(self.norm1(x), rel_pos_bias=self.rel_pos_bias()))
-        else:
-            x = x + self.drop_path(self.attn(self.norm1(x), rel_pos_bias=share_rel_pos_bias))
+    def forward(self, x, rel_pos_bias=None):
+        x = x + self.drop_path(self.attn(self.norm1(x), rel_pos_bias=rel_pos_bias))
         x = x + self.drop_path(self.mlp(self.norm2(x)))
         return x
 
@@ -285,7 +278,6 @@ class ViTDetVisionTransformer(BaseModule):
                  output_cls_token=True,
                  sincos_pos_embed=False,
                  use_rel_pos_bias=False,
-                 use_share_rel_pos_bias=False,
                  interpolate_mode='bicubic',
                  patch_cfg=dict(),
                  layer_cfgs=dict(),
@@ -308,7 +300,6 @@ class ViTDetVisionTransformer(BaseModule):
         self.embed_dims = self.arch_settings['embed_dims']
         self.num_layers = self.arch_settings['num_layers']
         self.num_heads = self.arch_settings['num_heads']
-        self.interval = len(self.num_layers) // 4
         norm_layer = partial(nn.LayerNorm, eps=1e-6)
         act_layer = nn.GELU
 
@@ -345,10 +336,12 @@ class ViTDetVisionTransformer(BaseModule):
                             self.embed_dims)) 
 
         # set rel_pos_bias
-        self.use_share_rel_pos_bias = use_share_rel_pos_bias
-        if use_share_rel_pos_bias:
+        if use_rel_pos_bias:
             self.window_rel_pos_bias = RelativePositionBias(window_size=[self.window_size, self.window_size], num_heads=self.num_heads)
             self.global_rel_pos_bias = RelativePositionBias(window_size=self.grid_size, num_heads=self.num_heads)
+        else:
+            self.window_rel_pos_bias = None
+            self.global_rel_pos_bias = None
 
         self.drop_after_pos = nn.Dropout(p=drop_rate)
 
@@ -379,9 +372,7 @@ class ViTDetVisionTransformer(BaseModule):
                 attn_drop=0.,
                 drop_path=dpr[i],
                 norm_layer=norm_layer,
-                act_layer=act_layer,
-                window_size=[window_size, window_size] if ((i + 1) % interval != 0) else self.grid_size,
-                use_rel_pos_bias=(use_rel_pos_bias and not use_share_rel_pos_bias))
+                act_layer=act_layer)
             self.blocks.append(Block(**_layer_cfg))
 
         self.final_norm = final_norm
@@ -525,12 +516,12 @@ class ViTDetVisionTransformer(BaseModule):
         outs = []
         for i, layer in enumerate(self.blocks):
             # local self-attention & global self-attention
-            if (i+1) % self.interval == 0:
+            if (self.blocks==12 and (i+1) % 3 == 0) or (self.blocks==24 and (i+1) % 6 == 0):
                 x  = self.window_reverse(x, self.grid_size)
-                x = layer(x, self.global_rel_pos_bias() if self.use_share_rel_pos_bias is not None else None)
+                x = layer(x, self.global_rel_pos_bias() if self.global_rel_pos_bias is not None else None)
                 x = self.window_partition(x, self.grid_size)
             else:
-                x = layer(x, self.window_rel_pos_bias() if self.use_share_rel_pos_bias is not None else None)
+                x = layer(x, self.window_rel_pos_bias() if self.window_rel_pos_bias is not None else None)
 
             if i in self.out_indices:
                 # window_reverse
