@@ -165,3 +165,5 @@ optimizer = dict(
 lr_config = dict(warmup_iters=250) # 16 * 1000 == 250 * 64
 cumulative_iters = 8
 optimizer_config = dict(grad_clip=None, cumulative_iters=cumulative_iters)
+# you need to set mode='dynamic' if you are using pytorch<=1.5.0
+#fp16 = dict(loss_scale=dict(init_scale=512))
