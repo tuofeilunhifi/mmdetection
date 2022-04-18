@@ -3,7 +3,7 @@ import torch.nn as nn
 from mmcv.cnn import ConvModule
 
 from mmdet.models.builder import HEADS
-from mmdet.models.utils import build_linear_layer
+from mmdet.models.utils import build_linear_layer, ConvModule_Norm
 from .bbox_head import BBoxHead
 
 
@@ -107,7 +107,6 @@ class ConvFCBBoxHead(BBoxHead):
             self.init_cfg += [
                 dict(
                     type='Xavier',
-                    distribution='uniform',
                     override=[
                         dict(name='shared_fcs'),
                         dict(name='cls_fcs'),
@@ -132,7 +131,7 @@ class ConvFCBBoxHead(BBoxHead):
                 conv_in_channels = (
                     last_layer_dim if i == 0 else self.conv_out_channels)
                 branch_convs.append(
-                    ConvModule(
+                    ConvModule_Norm(
                         conv_in_channels,
                         self.conv_out_channels,
                         3,

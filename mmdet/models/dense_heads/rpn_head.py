@@ -9,6 +9,7 @@ from mmcv.ops import batched_nms
 
 from ..builder import HEADS
 from .anchor_head import AnchorHead
+from ..utils import ConvModule_Norm
 
 
 @HEADS.register_module()
@@ -25,10 +26,8 @@ class RPNHead(AnchorHead):
                  in_channels,
                  init_cfg=dict(type='Normal', layer='Conv2d', std=0.01),
                  num_convs=1,
-                 norm_cfg=None,
                  **kwargs):
         self.num_convs = num_convs
-        self.norm_cfg = norm_cfg
         super(RPNHead, self).__init__(
             1, in_channels, init_cfg=init_cfg, **kwargs)
 
@@ -45,13 +44,13 @@ class RPNHead(AnchorHead):
                 # needed for gradient computation has been modified by an
                 # inplace operation.
                 rpn_convs.append(
-                    ConvModule(
+                    ConvModule_Norm(
                         in_channels,
                         self.feat_channels,
                         3,
                         padding=1,
-                        inplace=False,
-                        norm_cfg=self.norm_cfg))
+                        norm_cfg=self.norm_cfg,
+                        inplace=False))
             self.rpn_conv = nn.Sequential(*rpn_convs)
         else:
             self.rpn_conv = nn.Conv2d(
@@ -65,7 +64,7 @@ class RPNHead(AnchorHead):
     def forward_single(self, x):
         """Forward feature map of a single scale level."""
         x = self.rpn_conv(x)
-        x = F.relu(x.clone(), inplace=True)
+        x = F.relu(x, inplace=True)
         rpn_cls_score = self.rpn_cls(x)
         rpn_bbox_pred = self.rpn_reg(x)
         return rpn_cls_score, rpn_bbox_pred
@@ -193,12 +192,13 @@ class RPNHead(AnchorHead):
                            level_ids, cfg, img_shape, **kwargs):
         """bbox post-processing method.
 
-        Do the nms operation for bboxes in same level.
+        The boxes would be rescaled to the original image scale and do
+        the nms operation. Usually with_nms is False is used for aug test.
 
         Args:
             mlvl_scores (list[Tensor]): Box scores from all scale
                 levels of a single image, each item has shape
-                (num_bboxes, ).
+                (num_bboxes, num_class).
             mlvl_bboxes (list[Tensor]): Decoded bboxes from all scale
                 levels of a single image, each item has shape (num_bboxes, 4).
             mlvl_valid_anchors (list[Tensor]): Anchors of all scale level
@@ -206,8 +206,8 @@ class RPNHead(AnchorHead):
             level_ids (list[Tensor]): Indexes from all scale levels of a
                 single image, each item has shape (num_bboxes, ).
             cfg (mmcv.Config): Test / postprocessing configuration,
-                if None, `self.test_cfg` would be used.
-            img_shape (tuple(int)): The shape of model's input image.
+                if None, test_cfg would be used.
+            img_shape (tuple(int)): Shape of current image.
 
         Returns:
             Tensor: Labeled boxes in shape (n, 5), where the first 4 columns

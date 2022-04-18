@@ -12,6 +12,7 @@ from torch.nn.modules.utils import _pair
 
 from mmdet.core import mask_target
 from mmdet.models.builder import HEADS, build_loss
+from mmdet.models.utils import ConvModule_Norm
 
 BYTES_PER_FLOAT = 4
 # TODO: This memory limit may be too much or too little. It would be better to
@@ -70,7 +71,7 @@ class FCNMaskHead(BaseModule):
                 self.in_channels if i == 0 else self.conv_out_channels)
             padding = (self.conv_kernel_size - 1) // 2
             self.convs.append(
-                ConvModule(
+                ConvModule_Norm(
                     in_channels,
                     self.conv_out_channels,
                     self.conv_kernel_size,
