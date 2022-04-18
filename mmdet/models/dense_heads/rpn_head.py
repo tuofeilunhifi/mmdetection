@@ -26,8 +26,10 @@ class RPNHead(AnchorHead):
                  in_channels,
                  init_cfg=dict(type='Normal', layer='Conv2d', std=0.01),
                  num_convs=1,
+                 norm_cfg=None,
                  **kwargs):
         self.num_convs = num_convs
+        self.norm_cfg = norm_cfg
         super(RPNHead, self).__init__(
             1, in_channels, init_cfg=init_cfg, **kwargs)
 
