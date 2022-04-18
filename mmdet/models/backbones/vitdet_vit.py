@@ -316,6 +316,11 @@ class ViTDetVisionTransformer(BaseModule):
             self.pad_t = 0
             self.pad_r = (self.window_size - self.grid_size[1] % self.window_size) % self.window_size
             self.pad_b = (self.window_size - self.grid_size[0] % self.window_size) % self.window_size
+        else:
+            self.pad_l = 0
+            self.pad_t = 0
+            self.pad_r = 0
+            self.pad_b = 0
 
         self.patch_size = patch_size
         self.out_indices = out_indices
@@ -482,25 +487,27 @@ class ViTDetVisionTransformer(BaseModule):
         B, L, C = x.shape
         H, W = grid_size[0], grid_size[1]
 
+        x = x.reshape(B, H, W, C)
         if H % self.window_size:
-            x = x.reshape(B, H, W, C)
-
             x = F.pad(x, (0, 0, self.pad_l, self.pad_r, self.pad_t, self.pad_b))
-            _, Hp, Wp, _ = x.shape
-            x = x.reshape(B * (Hp // self.window_size) * (Wp // self.window_size), self.window_size * self.window_size, C)
-        else:
-            x = x.reshape(B * (H // self.window_size) * (W // self.window_size), self.window_size * self.window_size, C)
+        _, Hp, Wp, _ = x.shape
+        x = x.view(B, Hp // self.window_size, self.window_size, Wp // self.window_size, self.window_size, C)
+
+        x = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(-1, self.window_size, self.window_size, C)
+        x = x.view(-1, self.window_size * self.window_size, C)
         return x
 
     def window_reverse(self, x, grid_size):
-        B, L, C = x.shape
         H, W = grid_size[0], grid_size[1]
+
+        B = int(x.shape[0] / ((H + self.pad_t + self.pad_b) * (W + self.pad_l + self.pad_r) / self.window_size / self.window_size))
+        x = x.view(B, (H + self.pad_t + self.pad_b) // self.window_size, (W + self.pad_l + self.pad_r) // self.window_size, self.window_size, self.window_size, -1)
+        x = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(B, (H + self.pad_t + self.pad_b), (W + self.pad_l + self.pad_r), -1)
+
         if H % self.window_size:
-            x = x.reshape(-1, H + self.pad_t + self.pad_b, W + self.pad_l + self.pad_r, C)
             x = x[:, :H, :W, :].contiguous()
-            x = x.reshape(-1, H * W, C)
-        else:
-            x = x.reshape(B // ((H // self.window_size) * (W // self.window_size)), L * (H // self.window_size) * (W // self.window_size), C)
+        x = x.view(B, H * W, -1)
+
         return x 
 
     def forward(self, x):
