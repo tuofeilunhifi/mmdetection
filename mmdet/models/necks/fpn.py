@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from mmcv.cnn import ConvModule
 from mmcv.runner import BaseModule, auto_fp16
+from ..utils import ConvModule_Norm
 
 from ..builder import NECKS
 
@@ -15,8 +16,8 @@ class FPN(BaseModule):
     Detection <https://arxiv.org/abs/1612.03144>`_.
 
     Args:
-        in_channels (list[int]): Number of input channels per scale.
-        out_channels (int): Number of output channels (used at each scale).
+        in_channels (List[int]): Number of input channels per scale.
+        out_channels (int): Number of output channels (used at each scale)
         num_outs (int): Number of output scales.
         start_level (int): Index of the start input backbone level used to
             build the feature pyramid. Default: 0.
@@ -29,7 +30,7 @@ class FPN(BaseModule):
             Only the following options are allowed
 
             - 'on_input': Last feat map of neck inputs (i.e. backbone feature).
-            - 'on_lateral': Last feature map after lateral convs.
+            - 'on_lateral':  Last feature map after lateral convs.
             - 'on_output': The last output feature map after fpn convs.
         relu_before_extra_convs (bool): Whether to apply relu before the extra
             conv. Default: False.
@@ -37,10 +38,10 @@ class FPN(BaseModule):
             Default: False.
         conv_cfg (dict): Config dict for convolution layer. Default: None.
         norm_cfg (dict): Config dict for normalization layer. Default: None.
-        act_cfg (dict): Config dict for activation layer in ConvModule.
+        act_cfg (str): Config dict for activation layer in ConvModule.
             Default: None.
         upsample_cfg (dict): Config dict for interpolate layer.
-            Default: dict(mode='nearest').
+            Default: `dict(mode='nearest')`
         init_cfg (dict or list[dict], optional): Initialization config dict.
 
     Example:
@@ -71,6 +72,7 @@ class FPN(BaseModule):
                  conv_cfg=None,
                  norm_cfg=None,
                  act_cfg=None,
+                 use_residual=True,
                  upsample_cfg=dict(mode='nearest'),
                  init_cfg=dict(
                      type='Xavier', layer='Conv2d', distribution='uniform')):
@@ -84,6 +86,7 @@ class FPN(BaseModule):
         self.no_norm_on_lateral = no_norm_on_lateral
         self.fp16_enabled = False
         self.upsample_cfg = upsample_cfg.copy()
+        self.use_residual = use_residual
 
         if end_level == -1:
             self.backbone_end_level = self.num_ins
@@ -107,7 +110,7 @@ class FPN(BaseModule):
         self.fpn_convs = nn.ModuleList()
 
         for i in range(self.start_level, self.backbone_end_level):
-            l_conv = ConvModule(
+            l_conv = ConvModule_Norm(
                 in_channels[i],
                 out_channels,
                 1,
@@ -115,7 +118,7 @@ class FPN(BaseModule):
                 norm_cfg=norm_cfg if not self.no_norm_on_lateral else None,
                 act_cfg=act_cfg,
                 inplace=False)
-            fpn_conv = ConvModule(
+            fpn_conv = ConvModule_Norm(
                 out_channels,
                 out_channels,
                 3,
@@ -136,7 +139,7 @@ class FPN(BaseModule):
                     in_channels = self.in_channels[self.backbone_end_level - 1]
                 else:
                     in_channels = out_channels
-                extra_fpn_conv = ConvModule(
+                extra_fpn_conv = ConvModule_Norm(
                     in_channels,
                     out_channels,
                     3,
@@ -161,17 +164,17 @@ class FPN(BaseModule):
 
         # build top-down path
         used_backbone_levels = len(laterals)
-        for i in range(used_backbone_levels - 1, 0, -1):
-            # In some cases, fixing `scale factor` (e.g. 2) is preferred, but
-            #  it cannot co-exist with `size` in `F.interpolate`.
-            if 'scale_factor' in self.upsample_cfg:
-                # fix runtime error of "+=" inplace operation in PyTorch 1.10
-                laterals[i - 1] = laterals[i - 1] + F.interpolate(
-                    laterals[i], **self.upsample_cfg)
-            else:
-                prev_shape = laterals[i - 1].shape[2:]
-                laterals[i - 1] = laterals[i - 1] + F.interpolate(
-                    laterals[i], size=prev_shape, **self.upsample_cfg)
+        if self.use_residual:
+            for i in range(used_backbone_levels - 1, 0, -1):
+                # In some cases, fixing `scale factor` (e.g. 2) is preferred, but
+                #  it cannot co-exist with `size` in `F.interpolate`.
+                if 'scale_factor' in self.upsample_cfg:
+                    laterals[i - 1] += F.interpolate(laterals[i],
+                                                    **self.upsample_cfg)
+                else:
+                    prev_shape = laterals[i - 1].shape[2:]
+                    laterals[i - 1] += F.interpolate(
+                        laterals[i], size=prev_shape, **self.upsample_cfg)
 
         # build outputs
         # part 1: from original levels

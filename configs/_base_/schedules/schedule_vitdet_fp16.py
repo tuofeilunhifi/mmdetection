@@ -20,7 +20,7 @@ optimizer = dict(
                             )
                  )
 
-cumulative_iters = 4
+cumulative_iters = 8
 optimizer_config = dict(grad_clip=None, cumulative_iters=cumulative_iters)
 # learning policy
 lr_config = dict(
