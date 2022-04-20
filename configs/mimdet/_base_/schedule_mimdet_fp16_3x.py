@@ -1,11 +1,13 @@
 # optimizer
 paramwise_cfg={
-    'norm': dict(weight_decay=0.),
-    'bias': dict(weight_decay=0.),
-    'pos_embed': dict(weight_decay=0.),
-    'decoder_pos_embed': dict(weight_decay=0.)
+    'weight_decay': 0.1,
+    'weight_decay_norm': 0.0,
+    'base_lr': 2e-5,
+    'skip_list': ("pos_embed", "decoder_pos_embed"),
+    'multiplier': 2.0,
 }
-optimizer = dict(type='AdamW', lr=2e-5, betas=(0.9, 0.999), weight_decay=0.1, 
+optimizer = dict(type='AdamW', lr=2e-5, betas=(0.9, 0.999), weight_decay=0.1,
+                    constructor='MIMDetOptimizerConstructor',
                     paramwise_cfg=paramwise_cfg)
 
 cumulative_iters = 2
@@ -16,7 +18,7 @@ lr_config = dict(
     warmup='linear',
     warmup_by_epoch=True,
     warmup_iters=0.25,
-    warmup_ratio=0.001,
+    warmup_ratio=0.0001,
     step=[27, 33])
 
 runner = dict(type='EpochBasedRunner', max_epochs=36)
