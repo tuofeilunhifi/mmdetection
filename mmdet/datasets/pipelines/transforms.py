@@ -13,6 +13,9 @@ from mmdet.core import PolygonMasks, find_inside_bboxes
 from mmdet.core.evaluation.bbox_overlaps import bbox_overlaps
 from mmdet.utils import log_img_scale
 from ..builder import PIPELINES
+from torchvision import transforms as _transforms
+
+from mmcv.utils import build_from_cfg
 
 try:
     from imagecorruptions import corrupt
@@ -26,6 +29,29 @@ except ImportError:
     albumentations = None
     Compose = None
 
+
+@PIPELINES.register_module()
+class RandomAppliedTrans(object):
+    """Randomly applied transformations.
+
+    Args:
+        transforms (list[dict]): List of transformations in dictionaries.
+        p (float, optional): Probability. Defaults to 0.5.
+    """
+
+    def __init__(self, transforms, p=0.5):
+        t = [build_from_cfg(t, PIPELINES) for t in transforms]
+        self.trans = _transforms.RandomApply(t, p=p)
+        self.prob = p
+
+    def __call__(self, img):
+        return self.trans(img)
+
+    def __repr__(self):
+        repr_str = self.__class__.__name__
+        repr_str += f'prob = {self.prob}'
+        return repr_str
+        
 
 @PIPELINES.register_module()
 class Resize:
